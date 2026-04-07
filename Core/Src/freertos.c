@@ -25,8 +25,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "gpio.h"
-#include "usart.h"
+#include "adc.h"
+#include "tim.h"
+#include "spi.h"
 
 /* USER CODE END Includes */
 
@@ -37,6 +38,14 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define VOLTAGE_PER_BITS 12.0f/790.0f
+#define CURRENT_PER_BITS 80.0f/4096.0f
+
+#define DEGREE_PER_BITS 360.0f/16384.0f
+
+#define MEASUREMENT_LENGTH 100
+
+#define ARR_VAL 27500
 
 /* USER CODE END PD */
 
@@ -59,6 +68,7 @@ const osThreadAttr_t defaultTask_attributes = {
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
+int32_t calibrateOffset(uint32_t *pData, size_t len);
 
 /* USER CODE END FunctionPrototypes */
 
@@ -107,6 +117,23 @@ void MX_FREERTOS_Init(void) {
 }
 
 /* USER CODE BEGIN Header_StartDefaultTask */
+
+// DMA Buffers
+uint32_t uDcLinkVoltage;
+uint32_t uPhaseSens [MEASUREMENT_LENGTH];
+uint32_t uCurrSens [MEASUREMENT_LENGTH];
+
+volatile uint16_t uAngleRaw;
+
+// Control
+volatile uint32_t uDuty = 0;
+
+// Converted Measurement
+volatile float fAngle;
+volatile float fCurrent;
+
+volatile int32_t uCurrOffset;
+
 /**
   * @brief  Function implementing the defaultTask thread.
   * @param  argument: Not used
@@ -117,31 +144,78 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
 
-  uint8_t test[] = "hello\r\n";
+	// Calibrate the ADCs
+	HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
+	HAL_ADCEx_Calibration_Start(&hadc2, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
+	HAL_ADCEx_Calibration_Start(&hadc3, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
 
+	// Start DMAs
+	HAL_ADC_Start_DMA(&hadc1, uPhaseSens, MEASUREMENT_LENGTH);
+	HAL_ADC_Start_DMA(&hadc2, uCurrSens, MEASUREMENT_LENGTH);
+	HAL_ADC_Start_DMA(&hadc3, &uDcLinkVoltage , 1);
+
+	// Wait for buffers to calibrate
+
+	osDelay(1);
+
+	// Start Timer for periodic triggering of ADCs
+	HAL_TIM_Base_Start(&htim2);
+
+	// Write high to the MOSI to always get compensated angle
+	HAL_GPIO_WritePin(SPI2_MOSI_GPIO_Port,SPI2_MOSI_Pin,GPIO_PIN_SET);
+
+	// Wait for DMA buffers to get full
+
+	// Calculate the current offset before enabling the phases
+	uCurrOffset = calibrateOffset(uCurrSens, MEASUREMENT_LENGTH);
+
+	// Start PWMs to go to active short circuit
+	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+
+	// Make sure that channel 1 is always low
+	TIM1->CCR3 = 0;
+
+	HAL_SPI_Receive_DMA(&hspi2, (uint8_t*) &uAngleRaw, 1);
   /* Infinite loop */
-  while(1)
+  for(;;)
   {
-    HAL_GPIO_TogglePin(LED_Active_GPIO_Port, LED_Active_Pin);
-    
-    if (HAL_GPIO_ReadPin(USR_BTN1_GPIO_Port, USR_BTN1_Pin) == GPIO_PIN_SET)
-    {
-      HAL_GPIO_WritePin(LED_Fault_GPIO_Port, LED_Fault_Pin, GPIO_PIN_SET);
-    } 
-    else
-    {
-      HAL_GPIO_WritePin(LED_Fault_GPIO_Port, LED_Fault_Pin, GPIO_PIN_RESET);
-    }
+	  if (uDcLinkVoltage<750 || uDcLinkVoltage > 1600){
+		HAL_TIMEx_PWMN_Stop(&htim1, TIM_CHANNEL_1);
+		HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
+		HAL_TIMEx_PWMN_Stop(&htim1, TIM_CHANNEL_2);
+		HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
+		HAL_TIMEx_PWMN_Stop(&htim1, TIM_CHANNEL_3);
+		HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_3);
+	  }
 
-    HAL_UART_Transmit(&huart4, test, sizeof(test)-1, 1000);
+	  //Calculate measurement values online
+	  fAngle = (float)(uAngleRaw & 0x3FFF) * DEGREE_PER_BITS;
+	  fCurrent = (float)((int32_t)uCurrSens[0] - uCurrOffset)* CURRENT_PER_BITS;
 
-    osDelay(10);
+	  //Write the duty cycle
+	  TIM1->CCR1 = uDuty;
+	  osDelay(1);
   }
   /* USER CODE END StartDefaultTask */
 }
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+int32_t calibrateOffset(uint32_t *pData, size_t len)
+{
+
+    int64_t sum = 0;
+
+    for (size_t i = 0; i < len; i++)
+    {
+            sum += (int32_t)pData[i];
+    }
+
+    return (int32_t)(sum / len);
+}
 
 /* USER CODE END Application */
 

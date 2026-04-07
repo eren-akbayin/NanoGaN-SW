@@ -32,6 +32,7 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -57,14 +58,28 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define U_PHASE_SENS_W_Pin GPIO_PIN_0
+#define U_PHASE_SENS_W_GPIO_Port GPIOA
+#define GATE_WN_Pin GPIO_PIN_8
+#define GATE_WN_GPIO_Port GPIOE
+#define GATE_WP_Pin GPIO_PIN_9
+#define GATE_WP_GPIO_Port GPIOE
+#define GATE_VN_Pin GPIO_PIN_10
+#define GATE_VN_GPIO_Port GPIOE
+#define GATE_VP_Pin GPIO_PIN_11
+#define GATE_VP_GPIO_Port GPIOE
+#define GATE_UN_Pin GPIO_PIN_12
+#define GATE_UN_GPIO_Port GPIOE
+#define GATE_UP_Pin GPIO_PIN_13
+#define GATE_UP_GPIO_Port GPIOE
+#define SPI2_MOSI_Pin GPIO_PIN_15
+#define SPI2_MOSI_GPIO_Port GPIOB
 #define USR_BTN2_Pin GPIO_PIN_9
 #define USR_BTN2_GPIO_Port GPIOA
 #define USR_BTN1_Pin GPIO_PIN_10
 #define USR_BTN1_GPIO_Port GPIOA
 #define LED_Fault_Pin GPIO_PIN_2
 #define LED_Fault_GPIO_Port GPIOD
-#define LED_Active_Pin GPIO_PIN_5
-#define LED_Active_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
