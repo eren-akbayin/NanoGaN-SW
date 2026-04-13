@@ -65,6 +65,8 @@ void Error_Handler(void);
 #define HALL_B_GPIO_Port GPIOC
 #define HALL_C_Pin GPIO_PIN_15
 #define HALL_C_GPIO_Port GPIOC
+#define U_DC_SENS_Pin GPIO_PIN_2
+#define U_DC_SENS_GPIO_Port GPIOC
 #define U_PHASE_SENS_W_Pin GPIO_PIN_0
 #define U_PHASE_SENS_W_GPIO_Port GPIOA
 #define GATE_WN_Pin GPIO_PIN_8
