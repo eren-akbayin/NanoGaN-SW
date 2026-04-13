@@ -31,12 +31,13 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
-
+#include "stdint.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+
+extern volatile uint8_t uFault;
 
 /* USER CODE END ET */
 
@@ -58,6 +59,12 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define HALL_A_Pin GPIO_PIN_13
+#define HALL_A_GPIO_Port GPIOC
+#define HALL_B_Pin GPIO_PIN_14
+#define HALL_B_GPIO_Port GPIOC
+#define HALL_C_Pin GPIO_PIN_15
+#define HALL_C_GPIO_Port GPIOC
 #define U_PHASE_SENS_W_Pin GPIO_PIN_0
 #define U_PHASE_SENS_W_GPIO_Port GPIOA
 #define GATE_WN_Pin GPIO_PIN_8
