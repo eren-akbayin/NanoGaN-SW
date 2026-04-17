@@ -1,5 +1,5 @@
 ../Core/Src/app_threadx.c:119:6:App_ThreadX_Init	3
 ../Core/Src/app_threadx.c:153:6:tx_nanogan_app	1
-../Core/Src/app_threadx.c:198:6:MX_ThreadX_Init	1
-../Core/Src/app_threadx.c:213:16:calibrateOffset	2
-../Core/Src/app_threadx.c:229:13:calibrateCurrentSensors	2
+../Core/Src/app_threadx.c:208:6:MX_ThreadX_Init	1
+../Core/Src/app_threadx.c:230:16:calibrateOffset	2
+../Core/Src/app_threadx.c:246:13:calibrateSensorsSetShutdowns	3

@@ -89,7 +89,11 @@ int main(void)
 
   /* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+  /* USER CODE END Init */#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MAX3(a,b,c) MAX(MAX(a,b),c)
+
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MIN3(a,b,c) MIN(MIN(a,b),c)
 
   /* Configure the system clock */
   SystemClock_Config();
@@ -113,7 +117,6 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-  const char *msg = "Hello, World!\r\n";
 
   /* USER CODE END 2 */
 
@@ -126,8 +129,6 @@ int main(void)
   while (1)
   {
 
-	HAL_UART_Transmit(&huart4, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
-	HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

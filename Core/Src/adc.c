@@ -79,7 +79,7 @@ void MX_ADC1_Init(void)
 
   /** Configure Regular Channel
   */
-  sConfig.Channel = ADC_CHANNEL_14;
+  sConfig.Channel = ADC_CHANNEL_16;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_32CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
@@ -274,13 +274,11 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     __HAL_RCC_GPIOA_CLK_ENABLE();
     /**ADC1 GPIO Configuration
     PA0     ------> ADC1_INP16
-    PA1     ------> ADC1_INP17
-    PA2     ------> ADC1_INP14
     */
-    GPIO_InitStruct.Pin = U_PHASE_SENS_W_Pin|U_PHASE_SENS_V_Pin|U_PHASE_SENS_U_Pin;
+    GPIO_InitStruct.Pin = U_PHASE_SENS_W_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_Init(U_PHASE_SENS_W_GPIO_Port, &GPIO_InitStruct);
 
     /* ADC1 DMA Init */
     /* ADC1 Init */
@@ -429,10 +427,8 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 
     /**ADC1 GPIO Configuration
     PA0     ------> ADC1_INP16
-    PA1     ------> ADC1_INP17
-    PA2     ------> ADC1_INP14
     */
-    HAL_GPIO_DeInit(GPIOA, U_PHASE_SENS_W_Pin|U_PHASE_SENS_V_Pin|U_PHASE_SENS_U_Pin);
+    HAL_GPIO_DeInit(U_PHASE_SENS_W_GPIO_Port, U_PHASE_SENS_W_Pin);
 
     /* ADC1 DMA DeInit */
     HAL_DMA_DeInit(adcHandle->DMA_Handle);
