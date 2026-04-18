@@ -78,7 +78,7 @@ extern "C" {
 /* Exported functions prototypes ---------------------------------------------*/
 UINT App_ThreadX_Init(VOID *memory_ptr);
 void MX_ThreadX_Init(void);
-void tx_nanogan_app(ULONG thread_input);
+void tx_nanogan_fsm_app(ULONG thread_input);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */

@@ -173,6 +173,13 @@ SECTIONS
     libm.a ( * )
     libgcc.a ( * )
   }
+  
+  .trace (NOLOAD) :
+  {
+    . = ALIGN(4);
+    *(.trace)
+  } >RAM_D1
+  
 
   .ARM.attributes 0 : { *(.ARM.attributes) }
 }

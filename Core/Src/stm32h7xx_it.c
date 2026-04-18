@@ -22,9 +22,8 @@
 #include "stm32h7xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "shutdown.h"
 #include "tim.h"
-#include "arm_math.h"
-#include "gpio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -34,6 +33,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define CURRENT_DMA_NDTR 0x4002002c
 
 /* USER CODE END PD */
 
@@ -49,8 +49,6 @@
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
-
-static void gateDriveShutdown(void);
 
 /* USER CODE END PFP */
 
@@ -176,11 +174,13 @@ void ADC_IRQHandler(void)
 {
 	/* USER CODE BEGIN ADC_IRQn 0 */
 
-	gateDriveShutdown();
-
 	HAL_TIM_Base_Stop(&htim2);
 
-	uFault = 2;
+	TIM1->BDTR &= ~TIM_BDTR_MOE;
+
+	gateDriveShutdown();
+
+	getShutdownInfo(CURRENT, MEASUREMENT_LENGTH - *(volatile uint32_t*) CURRENT_DMA_NDTR);
 
 	HAL_GPIO_WritePin(LED_Fault_GPIO_Port, LED_Fault_Pin, GPIO_PIN_SET);
 	/* USER CODE END ADC_IRQn 0 */
@@ -239,11 +239,14 @@ void TIM6_DAC_IRQHandler(void)
 void ADC3_IRQHandler(void)
 {
 	/* USER CODE BEGIN ADC3_IRQn 0 */
-	gateDriveShutdown();
 
 	HAL_TIM_Base_Stop(&htim2);
 
-	uFault = 1;
+	TIM1->BDTR &= ~TIM_BDTR_MOE;
+
+	gateDriveShutdown();
+
+	getShutdownInfo(VOLTAGE, MEASUREMENT_LENGTH - *(volatile uint32_t*) CURRENT_DMA_NDTR);
 
 	HAL_GPIO_WritePin(LED_Fault_GPIO_Port, LED_Fault_Pin, GPIO_PIN_SET);
 
@@ -255,18 +258,5 @@ void ADC3_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
-
-static void gateDriveShutdown(void)
-{
-	HAL_TIMEx_PWMN_Stop(&htim1, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
-	HAL_TIMEx_PWMN_Stop(&htim1, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
-	HAL_TIMEx_PWMN_Stop(&htim1, TIM_CHANNEL_3);
-	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_3);
-	TIM1->CCR3 = 0;
-	TIM1->CCR2 = 0;
-	TIM1->CCR1 = 0;
-}
 
 /* USER CODE END 1 */

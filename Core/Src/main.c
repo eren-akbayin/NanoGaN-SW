@@ -51,7 +51,14 @@
 
 /* USER CODE BEGIN PV */
 
-volatile uint8_t uFault;
+volatile uint16_t uCurrOffsetU;
+volatile uint16_t uCurrOffsetV;
+volatile uint16_t uCurrOffsetW;
+
+uint32_t uDcLinkVoltage;
+uint32_t uPhaseSens[MEASUREMENT_LENGTH];
+uint32_t uCurrSens[MEASUREMENT_LENGTH];
+
 
 /* USER CODE END PV */
 
@@ -89,11 +96,7 @@ int main(void)
 
   /* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#define MAX3(a,b,c) MAX(MAX(a,b),c)
-
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define MIN3(a,b,c) MIN(MIN(a,b),c)
+  /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();

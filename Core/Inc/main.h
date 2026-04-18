@@ -37,7 +37,15 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
-extern volatile uint8_t uFault;
+#define MEASUREMENT_LENGTH 150
+
+extern volatile uint16_t uCurrOffsetU;
+extern volatile uint16_t uCurrOffsetV;
+extern volatile uint16_t uCurrOffsetW;
+
+extern uint32_t uDcLinkVoltage;
+extern uint32_t uPhaseSens[MEASUREMENT_LENGTH];
+extern uint32_t uCurrSens[MEASUREMENT_LENGTH];
 
 /* USER CODE END ET */
 
@@ -97,6 +105,12 @@ void Error_Handler(void);
 #define LED_Fault_GPIO_Port GPIOD
 
 /* USER CODE BEGIN Private defines */
+
+#define VOLTAGE_PER_BITS 12.0f/790.0f
+#define CURRENT_PER_BITS 80.0f/4096.0f
+#define BITS_PER_CURRENT 4096.0f/80.0f
+#define BITS_PER_VOLTAGE 790.0f/12.0f
+#define DEGREE_PER_BITS 360.0f/16384.0f
 
 /* USER CODE END Private defines */
 
