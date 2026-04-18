@@ -50,7 +50,6 @@
 #define MIN_VOLTAGE 12.0f
 #define MAX_VOLTAGE 15.0f
 
-
 #define ARR_VAL 27500
 
 #define TRACEX_BUFFER_SIZE 64000
@@ -74,7 +73,7 @@ volatile uint16_t uAngleRaw;
 
 // Control
 volatile uint32_t uDuty = 0;
-volatile uint32_t uArr = 27499;
+volatile uint32_t uArr = 6875;
 
 // HALL Stuff
 
@@ -205,6 +204,5 @@ void MX_ThreadX_Init(void)
 }
 
 /* USER CODE BEGIN 2 */
-
 
 /* USER CODE END 2 */

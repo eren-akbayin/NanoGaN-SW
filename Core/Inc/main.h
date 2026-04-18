@@ -37,7 +37,7 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
-#define MEASUREMENT_LENGTH 150
+#define MEASUREMENT_LENGTH 600
 
 extern volatile uint16_t uCurrOffsetU;
 extern volatile uint16_t uCurrOffsetV;
@@ -83,6 +83,10 @@ void Error_Handler(void);
 #define U_DC_SENS_GPIO_Port GPIOC
 #define U_PHASE_SENS_W_Pin GPIO_PIN_0
 #define U_PHASE_SENS_W_GPIO_Port GPIOA
+#define U_PHASE_SENS_V_Pin GPIO_PIN_1
+#define U_PHASE_SENS_V_GPIO_Port GPIOA
+#define U_PHASE_SENS_U_Pin GPIO_PIN_2
+#define U_PHASE_SENS_U_GPIO_Port GPIOA
 #define GATE_WN_Pin GPIO_PIN_8
 #define GATE_WN_GPIO_Port GPIOE
 #define GATE_WP_Pin GPIO_PIN_9

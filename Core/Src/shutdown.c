@@ -20,36 +20,6 @@ ADC_AnalogWDGConfTypeDef AnalogWDGConfig_VoltageDc =
 
 shutdownInfoTypeDef_t shutdownInfo;
 
-// Returns index of the maximum value
-uint16_t getIndexMax(uint32_t *arr, uint16_t size)
-{
-	if (arr == NULL || size <= 0)
-		return -1;
-
-	int index = 0;
-	for (int i = 1; i < size; i++)
-	{
-		if (arr[i] > arr[index])
-			index = i;
-	}
-	return index;
-}
-
-// Returns index of the minimum value
-uint16_t getIndexMin(uint32_t *arr, uint16_t size)
-{
-	if (arr == NULL || size <= 0)
-		return -1;
-
-	int index = 0;
-	for (int i = 1; i < size; i++)
-	{
-		if (arr[i] < arr[index])
-			index = i;
-	}
-	return index;
-}
-
 static int32_t calibrateOffset(uint32_t *pData, size_t len, uint8_t offset)
 {
 
