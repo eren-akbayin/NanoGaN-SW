@@ -33,7 +33,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define CURRENT_DMA_NDTR 0x4002002c
+#define CURRENT_DMA_NDTR 0x4002002c //DMA! Steram 1 NDTR
+
+#define VOLTAGE_DMA_NDTR 0x40020414 //DMA2 Stream 0 NDTR
 
 /* USER CODE END PD */
 
@@ -45,7 +47,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 
-volatile uint32_t numberOfNops = 500;
+volatile uint32_t uNumberOfNops = 1000;
 
 /* USER CODE END PV */
 
@@ -178,8 +180,10 @@ void ADC_IRQHandler(void)
 
 	TIM1->BDTR &= ~TIM_BDTR_MOE;
 
-	for (uint32_t i= 0; i<numberOfNops ; i++ )
-	{
+	//Keep the measurement going for little bit longer in case of shutdown creates a bigger problem
+
+	for (uint32_t i = 0; i < uNumberOfNops; i++)
+			{
 		__NOP();
 	}
 
@@ -187,7 +191,7 @@ void ADC_IRQHandler(void)
 
 	gateDriveShutdown();
 
-	getShutdownInfo(CURRENT, MEASUREMENT_LENGTH - *(volatile uint32_t*) CURRENT_DMA_NDTR);
+	getShutdownInfo(CURRENT, 3*MEASUREMENT_SIZE - *(volatile uint32_t*) CURRENT_DMA_NDTR);
 
 	HAL_GPIO_WritePin(LED_Fault_GPIO_Port, LED_Fault_Pin, GPIO_PIN_SET);
   /* USER CODE END ADC_IRQn 0 */
@@ -247,13 +251,20 @@ void ADC3_IRQHandler(void)
 {
   /* USER CODE BEGIN ADC3_IRQn 0 */
 
-	HAL_TIM_Base_Stop(&htim2);
-
 	TIM1->BDTR &= ~TIM_BDTR_MOE;
+
+	//Keep the measurement going for little bit longer in case of shutdown creates a bigger problem
+
+	for (uint32_t i = 0; i < uNumberOfNops; i++)
+			{
+		__NOP();
+	}
+
+	HAL_TIM_Base_Stop(&htim2);
 
 	gateDriveShutdown();
 
-	getShutdownInfo(VOLTAGE, MEASUREMENT_LENGTH - *(volatile uint32_t*) CURRENT_DMA_NDTR);
+	getShutdownInfo(VOLTAGE, 3*MEASUREMENT_SIZE - *(volatile uint32_t*) VOLTAGE_DMA_NDTR);
 
 	HAL_GPIO_WritePin(LED_Fault_GPIO_Port, LED_Fault_Pin, GPIO_PIN_SET);
 

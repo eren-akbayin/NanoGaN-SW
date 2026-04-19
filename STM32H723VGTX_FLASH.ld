@@ -178,7 +178,7 @@ SECTIONS
   {
     . = ALIGN(4);
     *(.trace)
-  } >RAM_D1
+  } >DTCMRAM
   
 
   .ARM.attributes 0 : { *(.ARM.attributes) }

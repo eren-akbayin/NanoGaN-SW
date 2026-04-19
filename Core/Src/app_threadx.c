@@ -46,11 +46,9 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define MAX_CURRENT 3.0f
+#define MAX_CURRENT 4.0f
 #define MIN_VOLTAGE 11.5f
 #define MAX_VOLTAGE 13.5f
-
-#define ARR_VAL 13750
 
 #define TRACEX_BUFFER_SIZE 64000
 
@@ -72,7 +70,7 @@ uint8_t tracex_buffer[TRACEX_BUFFER_SIZE] __attribute__ ((section (".trace")));
 volatile uint16_t uAngleRaw;
 
 // Control
-volatile uint32_t uDuty = 6875;
+volatile uint32_t uDuty = ARR_VAL>>1;
 
 // HALL Stuff
 
@@ -145,11 +143,11 @@ void tx_nanogan_fsm_app(ULONG thread_input)
 
 	// Wait for DMA buffers to get full
 
-	TIM1->CCR3 = 6875;
+	TIM1->CCR3 = uDuty;
 
-	TIM1->CCR2 = 6875;
+	TIM1->CCR2 = uDuty;
 
-	TIM1->CCR1 = 6875;
+	TIM1->CCR1 = uDuty;
 
 	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
@@ -162,13 +160,13 @@ void tx_nanogan_fsm_app(ULONG thread_input)
 	 */
 	while (1)
 	{
-		fCurrentU = (float) ((int32_t) uCurrSens[0] - (int32_t) uCurrOffsetU)
-				* -CURRENT_PER_BITS;
-		fCurrentV = (float) ((int32_t) uCurrSens[1] - (int32_t) uCurrOffsetV)
-				* CURRENT_PER_BITS;
-		fCurrentW = (float) ((int32_t) uCurrSens[2] - (int32_t) uCurrOffsetW)
-				* CURRENT_PER_BITS;
-		fDcLinkVoltage = (float) (uDcLinkVoltage[0]) * VOLTAGE_PER_BITS;
+		fCurrentU = (float)((int32_t)gInverterMeasurements.uCurrSens[0] - (int32_t)gInverterMeasurements.uCurrOffsetU)
+				* -AMPERES_PER_BIT;
+		fCurrentV = (float)((int32_t)gInverterMeasurements.uCurrSens[1] - (int32_t)gInverterMeasurements.uCurrOffsetV)
+				* AMPERES_PER_BIT;
+		fCurrentW = (float)((int32_t)gInverterMeasurements.uCurrSens[2] - (int32_t)gInverterMeasurements.uCurrOffsetW)
+				* AMPERES_PER_BIT;
+		fDcLinkVoltage = (float)(gInverterMeasurements.uDcLinkVoltage[0]) * VOLTS_PER_BIT;
 
 		TIM1->CCR3 = uDuty;
 		tx_thread_sleep(1);
@@ -187,7 +185,7 @@ void MX_ThreadX_Init(void)
   /* USER CODE BEGIN  Before_Kernel_Start */
 	const char *msg = "Kernel starting!\r\n";
 
-	HAL_UART_Transmit(&huart4, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart4, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
 
   /* USER CODE END  Before_Kernel_Start */
 
@@ -197,7 +195,7 @@ void MX_ThreadX_Init(void)
 
 	msg = "Kernel has failed to start!\r\n";
 
-	HAL_UART_Transmit(&huart4, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart4, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
 
   /* USER CODE END  Kernel_Start_Error */
 }

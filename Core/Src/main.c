@@ -51,14 +51,7 @@
 
 /* USER CODE BEGIN PV */
 
-volatile uint16_t uCurrOffsetU;
-volatile uint16_t uCurrOffsetV;
-volatile uint16_t uCurrOffsetW;
-
-uint32_t uDcLinkVoltage[MEASUREMENT_LENGTH];
-uint32_t uPhaseSens[MEASUREMENT_LENGTH];
-uint32_t uCurrSens[MEASUREMENT_LENGTH];
-
+inverterMeasurementsTypeDef_t gInverterMeasurements = { 0 };
 
 /* USER CODE END PV */
 
@@ -105,6 +98,10 @@ int main(void)
   PeriphCommonClock_Config();
 
   /* USER CODE BEGIN SysInit */
+  gInverterMeasurements.bufferSize = MEASUREMENT_SIZE;
+  gInverterMeasurements.fVoltPerBit = VOLTS_PER_BIT;
+  gInverterMeasurements.fAmperePerbit = AMPERES_PER_BIT;
+  gInverterMeasurements.uTimeStepUs = 1; // 1 us per sample
 
   /* USER CODE END SysInit */
 
@@ -120,6 +117,7 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
+
 
   /* USER CODE END 2 */
 

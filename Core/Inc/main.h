@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.h
+ * @brief          : Header for main.c file.
+ *                   This file contains the common defines of the application.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2026 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -37,32 +37,36 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
+#define MEASUREMENT_SIZE 8000
 
-//typedef struct {
-//	//Buffer length
-//	size_t bufferSize;
-//    // Current offsets
-//    volatile uint16_t uCurrOffsetU;
-//    volatile uint16_t uCurrOffsetV;
-//    volatile uint16_t uCurrOffsetW;
-//
-//    // Voltage & sensor measurements
-//    uint32_t uDcLinkVoltage[MEASUREMENT_LENGTH];
-//    uint32_t uPhaseSens[MEASUREMENT_LENGTH];
-//    uint32_t uCurrSens[MEASUREMENT_LENGTH];
-//} MotorMeasurements_t;
-//
-//extern MotorMeasurements_t gMotorMeasurements;
+typedef struct {
+	//Buffer length
+	uint32_t bufferSize;
 
-#define MEASUREMENT_LENGTH 4800
+	//Indexes
+	uint32_t dmaIndex;
+	uint32_t faultIndex;
 
-extern volatile uint16_t uCurrOffsetU;
-extern volatile uint16_t uCurrOffsetV;
-extern volatile uint16_t uCurrOffsetW;
+	//Time Step
+	uint32_t uTimeStepUs;
 
-extern uint32_t uDcLinkVoltage[MEASUREMENT_LENGTH];
-extern uint32_t uPhaseSens[MEASUREMENT_LENGTH];
-extern uint32_t uCurrSens[MEASUREMENT_LENGTH];
+	//Conversion constants
+	float fVoltPerBit;
+	float fAmperePerbit;
+
+	// Current offsets
+	volatile uint16_t uCurrOffsetU;
+	volatile uint16_t uCurrOffsetV;
+	volatile uint16_t uCurrOffsetW;
+
+	// Voltage & sensor measurements
+	uint32_t uDcLinkVoltage[3*MEASUREMENT_SIZE];
+	uint32_t uPhaseSens[3*MEASUREMENT_SIZE];
+	uint32_t uCurrSens[3*MEASUREMENT_SIZE];
+
+} inverterMeasurementsTypeDef_t;
+
+extern inverterMeasurementsTypeDef_t gInverterMeasurements;
 
 /* USER CODE END ET */
 
@@ -127,13 +131,13 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN Private defines */
 
-#define VOLTAGE_PER_BITS 12.0f/790.0f
-#define CURRENT_PER_BITS 80.0f/4096.0f
-#define BITS_PER_CURRENT 4096.0f/80.0f
-#define BITS_PER_VOLTAGE 790.0f/12.0f
-#define DEGREE_PER_BITS 360.0f/16384.0f
+#define VOLTS_PER_BIT 12.0f/790.0f
+#define AMPERES_PER_BIT 80.0f/4096.0f
+#define BITS_PER_AMPERE 4096.0f/80.0f
+#define BITS_PER_VOLT 790.0f/12.0f
+#define DEGREE_PER_BIT 360.0f/16384.0f
 
-
+#define ARR_VAL 6874
 
 /* USER CODE END Private defines */
 

@@ -51,5 +51,4 @@ extern ADC_AnalogWDGConfTypeDef AnalogWDGConfig_VoltageDc;
 
 extern void calibrateSensorsSetShutdowns(float i_max, float u_min, float u_max);
 extern void gateDriveShutdown(void);
-extern void getShutdownInfo(measurementType_t measurementType,
-		uint32_t dmaPointer);
+extern void getShutdownInfo(measurementType_t measurementType, uint32_t dmaPointer);
