@@ -11,7 +11,7 @@
 
 // Function prototypes (static)
 
-static int32_t calibrateOffset(uint32_t *pData, size_t len, uint8_t offset);
+static int32_t calibrateOffset(uint32_t *pData, uint32_t len, uint8_t offset);
 
 ADC_AnalogWDGConfTypeDef AnalogWDGConfig_Currents =
 { 0 };
@@ -20,14 +20,14 @@ ADC_AnalogWDGConfTypeDef AnalogWDGConfig_VoltageDc =
 
 shutdownInfoTypeDef_t shutdownInfo;
 
-static int32_t calibrateOffset(uint32_t *pData, size_t len, uint8_t offset)
+static int32_t calibrateOffset(uint32_t *pData, uint32_t len, uint8_t offset)
 {
 
 	int64_t sum = 0;
 
-	uint8_t count = 0;
+	uint32_t count = 0;
 
-	for (size_t i = offset; i < len; i = i + 3)
+	for (uint32_t i = offset; i < len; i = i + 3)
 	{
 		sum += (int32_t) pData[i];
 		count++;
@@ -103,7 +103,7 @@ void calibrateSensorsSetShutdowns(float i_max, float u_min, float u_max)
 
 	HAL_ADC_Start_DMA(&hadc2, uCurrSens, MEASUREMENT_LENGTH);
 
-	HAL_ADC_Start_DMA(&hadc3, &uDcLinkVoltage, 1);
+	HAL_ADC_Start_DMA(&hadc3, uDcLinkVoltage, MEASUREMENT_LENGTH);
 
 	HAL_TIM_Base_Start(&htim2);
 
@@ -118,9 +118,9 @@ void gateDriveShutdown(void)
 	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
 	HAL_TIMEx_PWMN_Stop(&htim1, TIM_CHANNEL_3);
 	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_3);
-	TIM1->CCR3 = 0;
-	TIM1->CCR2 = 0;
-	TIM1->CCR1 = 0;
+	TIM1->CCR3 = 6875;
+	TIM1->CCR2 = 6875;
+	TIM1->CCR1 = 6875;
 }
 
 void getShutdownInfo(measurementType_t measurementType, uint32_t dmaIndex)
@@ -131,7 +131,8 @@ void getShutdownInfo(measurementType_t measurementType, uint32_t dmaIndex)
 	if (measurementType == VOLTAGE)
 	{
 		shutdownInfo.measuredRaw = ADC3->DR;
-		shutdownInfo.measured = (float) (shutdownInfo.measuredRaw) * VOLTAGE_PER_BITS;
+		shutdownInfo.measured = (float) (shutdownInfo.measuredRaw)
+				* VOLTAGE_PER_BITS;
 		shutdownInfo.thresholds.lowerThresholdRaw =
 				AnalogWDGConfig_VoltageDc.LowThreshold;
 		shutdownInfo.thresholds.upperThresholdRaw =
@@ -142,7 +143,8 @@ void getShutdownInfo(measurementType_t measurementType, uint32_t dmaIndex)
 		shutdownInfo.thresholds.upperThreshold =
 				(float) (shutdownInfo.thresholds.upperThresholdRaw)
 						* VOLTAGE_PER_BITS;
-		if (shutdownInfo.measuredRaw >= shutdownInfo.thresholds.upperThresholdRaw)
+		if (shutdownInfo.measuredRaw
+				>= shutdownInfo.thresholds.upperThresholdRaw)
 		{
 			shutdownInfo.shutdownType = OVER_VOLTAGE_SHUTDOWN;
 		}
@@ -158,14 +160,32 @@ void getShutdownInfo(measurementType_t measurementType, uint32_t dmaIndex)
 		shutdownInfo.thresholds.upperThresholdRaw =
 				AnalogWDGConfig_Currents.HighThreshold;
 
-		shutdownInfo.measuredRaw = uCurrSens[dmaIndex];
+		uint16_t i = dmaIndex;
 
-		switch (dmaIndex % 3)
+		do
+		{
+			if (uCurrSens[i] < shutdownInfo.thresholds.lowerThresholdRaw
+					|| uCurrSens[i] > shutdownInfo.thresholds.upperThresholdRaw)
+				break;
+
+			i--;
+
+			if (i < 0)
+				i = MEASUREMENT_LENGTH - 1;
+
+		} while (i != dmaIndex);
+
+		shutdownInfo.faultIndex = i;
+
+		shutdownInfo.measuredRaw = uCurrSens[shutdownInfo.faultIndex];
+
+		switch (shutdownInfo.faultIndex % 3)
 		{
 		case 0:
 			shutdownInfo.shutdownType = OVER_CURRENT_SHUTDOWN_PHASE_U;
-			shutdownInfo.measured = (float) ((int32_t) uCurrSens[dmaIndex]
-					- (int32_t) uCurrOffsetU) * -CURRENT_PER_BITS;
+			shutdownInfo.measured =
+					(float) ((int32_t) uCurrSens[shutdownInfo.faultIndex]
+							- (int32_t) uCurrOffsetU) * -CURRENT_PER_BITS;
 			shutdownInfo.thresholds.lowerThreshold =
 					-(float) (AnalogWDGConfig_Currents.HighThreshold
 							- uCurrOffsetV) * CURRENT_PER_BITS;
@@ -174,8 +194,9 @@ void getShutdownInfo(measurementType_t measurementType, uint32_t dmaIndex)
 			break;
 		case 1:
 			shutdownInfo.shutdownType = OVER_CURRENT_SHUTDOWN_PHASE_V;
-			shutdownInfo.measured = (float) ((int32_t) uCurrSens[dmaIndex]
-					- (int32_t) uCurrOffsetV) * CURRENT_PER_BITS;
+			shutdownInfo.measured =
+					(float) ((int32_t) uCurrSens[shutdownInfo.faultIndex]
+							- (int32_t) uCurrOffsetV) * CURRENT_PER_BITS;
 			shutdownInfo.thresholds.lowerThreshold = -(float) (uCurrOffsetV
 					- AnalogWDGConfig_Currents.LowThreshold) * CURRENT_PER_BITS;
 			shutdownInfo.thresholds.upperThreshold =
@@ -184,8 +205,9 @@ void getShutdownInfo(measurementType_t measurementType, uint32_t dmaIndex)
 			break;
 		case 2:
 			shutdownInfo.shutdownType = OVER_CURRENT_SHUTDOWN_PHASE_W;
-			shutdownInfo.measured = (float) ((int32_t) uCurrSens[dmaIndex]
-					- (int32_t) uCurrOffsetW) * CURRENT_PER_BITS;
+			shutdownInfo.measured =
+					(float) ((int32_t) uCurrSens[shutdownInfo.faultIndex]
+							- (int32_t) uCurrOffsetW) * CURRENT_PER_BITS;
 			shutdownInfo.thresholds.lowerThreshold = -(float) (uCurrOffsetW
 					- AnalogWDGConfig_Currents.LowThreshold) * CURRENT_PER_BITS;
 			shutdownInfo.thresholds.upperThreshold =

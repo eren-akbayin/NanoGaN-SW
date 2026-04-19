@@ -47,10 +47,10 @@
 /* USER CODE BEGIN PD */
 
 #define MAX_CURRENT 3.0f
-#define MIN_VOLTAGE 12.0f
-#define MAX_VOLTAGE 15.0f
+#define MIN_VOLTAGE 11.5f
+#define MAX_VOLTAGE 13.5f
 
-#define ARR_VAL 27500
+#define ARR_VAL 13750
 
 #define TRACEX_BUFFER_SIZE 64000
 
@@ -72,8 +72,7 @@ uint8_t tracex_buffer[TRACEX_BUFFER_SIZE] __attribute__ ((section (".trace")));
 volatile uint16_t uAngleRaw;
 
 // Control
-volatile uint32_t uDuty = 0;
-volatile uint32_t uArr = 6875;
+volatile uint32_t uDuty = 6875;
 
 // HALL Stuff
 
@@ -146,18 +145,18 @@ void tx_nanogan_fsm_app(ULONG thread_input)
 
 	// Wait for DMA buffers to get full
 
-	TIM1->CCR3 = 0;
+	TIM1->CCR3 = 6875;
 
-	TIM1->CCR2 = 0;
+	TIM1->CCR2 = 6875;
 
-	TIM1->CCR1 = 0;
+	TIM1->CCR1 = 6875;
 
-	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
 	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
 	/** Configure Analog WatchDog 1
 	 */
@@ -169,7 +168,7 @@ void tx_nanogan_fsm_app(ULONG thread_input)
 				* CURRENT_PER_BITS;
 		fCurrentW = (float) ((int32_t) uCurrSens[2] - (int32_t) uCurrOffsetW)
 				* CURRENT_PER_BITS;
-		fDcLinkVoltage = (float) (uDcLinkVoltage) * VOLTAGE_PER_BITS;
+		fDcLinkVoltage = (float) (uDcLinkVoltage[0]) * VOLTAGE_PER_BITS;
 
 		TIM1->CCR3 = uDuty;
 		tx_thread_sleep(1);

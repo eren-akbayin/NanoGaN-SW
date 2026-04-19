@@ -37,14 +37,13 @@ typedef struct
 
 typedef struct
 {
-
 	uint16_t measuredRaw;
 	float measured;
 	measurementType_t measurementType;
 	thresholdTypeDef_t thresholds;
 	shutdownType_t shutdownType;
 	uint32_t dmaIndex;
-
+	uint32_t faultIndex;
 } shutdownInfoTypeDef_t;
 
 extern ADC_AnalogWDGConfTypeDef AnalogWDGConfig_Currents;

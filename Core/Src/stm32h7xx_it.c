@@ -45,6 +45,8 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 
+volatile uint32_t numberOfNops = 500;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -174,9 +176,14 @@ void ADC_IRQHandler(void)
 {
   /* USER CODE BEGIN ADC_IRQn 0 */
 
-	HAL_TIM_Base_Stop(&htim2);
-
 	TIM1->BDTR &= ~TIM_BDTR_MOE;
+
+	for (uint32_t i= 0; i<numberOfNops ; i++ )
+	{
+		__NOP();
+	}
+
+	HAL_TIM_Base_Stop(&htim2);
 
 	gateDriveShutdown();
 
