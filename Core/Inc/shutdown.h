@@ -16,15 +16,15 @@ typedef enum
 
 typedef enum
 {
-	NO_SHUTDOWN = 0,
-	UNDER_VOLTAGE_SHUTDOWN = 1,
-	OVER_VOLTAGE_SHUTDOWN = 2,
-	OVER_CURRENT_SHUTDOWN_PHASE_U = 3,
-	OVER_CURRENT_SHUTDOWN_PHASE_V = 4,
-	OVER_CURRENT_SHUTDOWN_PHASE_W = 5,
-	OVER_TEMPERATURE_SHUTDOWN = 6,
-	OVER_SPEED_SHUTDOWN = 7
-} shutdownType_t;
+	NO_FAULT = 0,
+	UNDER_VOLTAGE_FAULT = 1,
+	OVER_VOLTAGE_FAULT = 2,
+	OVER_CURRENT_FAULT_PHASE_U = 3,
+	OVER_CURRENT_FAULT_PHASE_V = 4,
+	OVER_CURRENT_FAULT_PHASE_W = 5,
+	OVER_TEMPERATURE_FAULT = 6,
+	OVER_SPEED_FAULT = 7
+} faultType_t;
 
 typedef struct
 {
@@ -41,7 +41,7 @@ typedef struct
 	float measured;
 	measurementType_t measurementType;
 	thresholdTypeDef_t thresholds;
-	shutdownType_t shutdownType;
+	faultType_t faultType;
 	uint32_t dmaIndex;
 	uint32_t faultIndex;
 } shutdownInfoTypeDef_t;

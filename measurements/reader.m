@@ -2,73 +2,102 @@ clc
 
 clear
 
-buf_len = 600;
+fid = fopen('measurement15.bin', 'rb');
 
-dmaIndex = 471;
+%% Read header fields (all uint32 or float, 4 bytes each)
+bufferSize      = fread(fid, 1, 'uint32');   % bufferSize (= MEASUREMENT_SIZE)
+dmaIndex        = fread(fid, 1, 'uint32');   % dmaIndex
+faultIndex      = fread(fid, 1, 'uint32');   % faultIndex
+uTimeStepUs     = fread(fid, 1, 'uint32');   % uTimeStepUs
+fVoltPerBit     = fread(fid, 1, 'float32');  % fVoltPerBit
+fAmperePerBit   = fread(fid, 1, 'float32');  % fAmperePerBit
 
-fid = fopen('currents.bin', 'rb');
-current_raw = fread(fid, buf_len, 'uint32');  % reads 300 x uint32 elements
-fclose(fid);
+%% Current offsets - volatile uint16_t (2 bytes each)
+% Three uint16 values packed into 6 bytes - likely padded to 8 bytes (alignment)
+uCurrOffsetU    = fread(fid, 1, 'uint16');
+uCurrOffsetV    = fread(fid, 1, 'uint16');
+uCurrOffsetW    = fread(fid, 1, 'uint16');
+padding         = fread(fid, 1, 'uint16');   % 2-byte padding to reach uint32 alignment
 
-current_raw = circshift(current_raw, -dmaIndex);
+%% Arrays - uint32[MEASUREMENT_SIZE]
+uDcLinkVoltage  = fread(fid, 3*bufferSize, 'uint32');
+uPhaseSens      = fread(fid, 3*bufferSize, 'uint32');
+uCurrSens       = fread(fid, 3*bufferSize, 'uint32');
 
-fid = fopen('voltages.bin', 'rb');
-voltage_raw = fread(fid, buf_len, 'uint32');  % reads 300 x uint32 elements
-fclose(fid);
+fid = fclose(fid);
 
-fid = fopen('dcvoltage.bin', 'rb');
-dc_voltage_raw = fread(fid, buf_len, 'uint32');  % reads 300 x uint32 elements
-fclose(fid);
+dmaIndexShift = dmaIndex - mod(dmaIndex,3);
 
-voltage_raw = circshift(voltage_raw, -dmaIndex);
+uDcLinkVoltage = circshift(uDcLinkVoltage, -dmaIndexShift);
+uPhaseSens = circshift(uPhaseSens, -dmaIndexShift);
+uCurrSens = circshift(uCurrSens, -dmaIndexShift);
 
-CURRENT_PER_BITS = 80.0/4096.0;
+%% Converting to floating point
 
-VOLTAGE_PER_BITS = 12.0/790.0;
+fVoltageDC = uDcLinkVoltage * fVoltPerBit;
 
-uCurrOffsetU = 2076;
-uCurrOffsetV = 2079;
-uCurrOffsetW = 2078;
+fVoltageU = uPhaseSens(1:3:end) * fVoltPerBit;
+fVoltageV = uPhaseSens(2:3:end) * fVoltPerBit;
+fVoltageW = uPhaseSens(3:3:end) * fVoltPerBit;
 
-currents_phaseU = -(current_raw(1:3:end) - uCurrOffsetU) * CURRENT_PER_BITS;   % indices 1, 4, 7, ... → 100 samples
-currents_phaseV = (current_raw(2:3:end) - uCurrOffsetV) * CURRENT_PER_BITS;   % indices 2, 5, 8, ... → 100 samples
-currents_phaseW = (current_raw(3:3:end) - uCurrOffsetW) * CURRENT_PER_BITS;   % indices 3, 6, 9, ... → 100 samples
+fCurrU = -(uCurrSens(1:3:end) - uCurrOffsetU) * fAmperePerBit;   % indices 1, 4, 7, ... → 100 samples
+fCurrV = (uCurrSens(2:3:end) - uCurrOffsetV) * fAmperePerBit;   % indices 2, 5, 8, ... → 100 samples
+fCurrW = (uCurrSens(3:3:end) - uCurrOffsetW) * fAmperePerBit;   % indices 3, 6, 9, ... → 100 samples
 
-voltage_phaseU = voltage_raw(1:3:end) * VOLTAGE_PER_BITS;
-voltage_phaseV = voltage_raw(2:3:end) * VOLTAGE_PER_BITS;
-voltage_phaseW = voltage_raw(3:3:end) * VOLTAGE_PER_BITS;
+%% Time axis
+N  = bufferSize;
+t_us = (0:N-1) * uTimeStepUs;
 
-dc_voltage = dc_voltage_raw(1:3:end) * VOLTAGE_PER_BITS;
-
+t_us3 = (0:3*N-1) * uTimeStepUs/3;
 
 tiledlayout(3,1)
 
 ax1 = nexttile;
 
-plot(currents_phaseU);
+plot(t_us, fCurrU);
 
 hold on;
 
-plot(currents_phaseV);
+plot(t_us, fCurrV);
 
-plot(currents_phaseW);
+plot(t_us, fCurrW);
+
+grid on;
+
+grid minor;
+
+ylabel("Phase Currents")
 
 legend("Phase U", "Phase V", "Phase W")
 
 ax2 = nexttile;
 
-stairs(voltage_phaseU)
+stairs(t_us, fVoltageU)
 
 hold on;
 
-stairs(voltage_phaseV)
+stairs(t_us, fVoltageV)
 
-stairs(voltage_phaseW)
+stairs(t_us, fVoltageW)
+
+grid on;
+
+grid minor;
+
+ylabel("Phase Voltages")
 
 legend("Phase U", "Phase V", "Phase W")
 
 ax3 = nexttile;
 
-plot(dc_voltage)
+plot(t_us3, fVoltageDC)
+
+grid on;
+
+grid minor;
+
+xlabel("Time in us")
+
+ylabel("DC Link Voltage")
 
 linkaxes([ax1,ax2,ax3],'x');

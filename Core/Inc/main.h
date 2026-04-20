@@ -68,6 +68,15 @@ typedef struct {
 
 extern inverterMeasurementsTypeDef_t gInverterMeasurements;
 
+typedef enum
+{
+	OC = 0,		// Open Circuit
+	ASC_LOW = 1,	// Active Short Circuit Low Side
+	ASC_HIGH = 2	// Active Short Circuit High Side. Careful due to bootstrap it will persist for a limited time!!!
+}shutdownType_t;
+
+extern shutdownType_t gShutdownType;
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

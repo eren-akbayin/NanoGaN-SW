@@ -46,7 +46,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define MAX_CURRENT 4.0f
+#define MAX_CURRENT 5.0f
 #define MIN_VOLTAGE 11.5f
 #define MAX_VOLTAGE 13.5f
 

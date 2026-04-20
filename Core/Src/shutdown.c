@@ -109,9 +109,9 @@ void gateDriveShutdown(void)
 	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
 	HAL_TIMEx_PWMN_Stop(&htim1, TIM_CHANNEL_3);
 	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_3);
-	TIM1->CCR3 = ARR_VAL;
-	TIM1->CCR2 = ARR_VAL;
-	TIM1->CCR1 = ARR_VAL;
+	TIM1->CCR3 = ARR_VAL >> 1;
+	TIM1->CCR2 = ARR_VAL >> 1;
+	TIM1->CCR1 = ARR_VAL >> 1;
 }
 
 void getShutdownInfo(measurementType_t measurementType, uint32_t dmaIndex)
@@ -129,12 +129,12 @@ void getShutdownInfo(measurementType_t measurementType, uint32_t dmaIndex)
 		{
 			if (gInverterMeasurements.uDcLinkVoltage[i] < shutdownInfo.thresholds.lowerThresholdRaw)
 					{
-				shutdownInfo.shutdownType = UNDER_VOLTAGE_SHUTDOWN;
+				shutdownInfo.faultType = UNDER_VOLTAGE_FAULT;
 				break;
 			}
 			else if (gInverterMeasurements.uDcLinkVoltage[i] > shutdownInfo.thresholds.upperThresholdRaw)
 					{
-				shutdownInfo.shutdownType = OVER_VOLTAGE_SHUTDOWN;
+				shutdownInfo.faultType = OVER_VOLTAGE_FAULT;
 				break;
 			}
 
@@ -176,7 +176,7 @@ void getShutdownInfo(measurementType_t measurementType, uint32_t dmaIndex)
 		switch (shutdownInfo.faultIndex % 3)
 		{
 		case 0:
-			shutdownInfo.shutdownType = OVER_CURRENT_SHUTDOWN_PHASE_U;
+			shutdownInfo.faultType = OVER_CURRENT_FAULT_PHASE_U;
 			shutdownInfo.measured = (float)((int32_t)gInverterMeasurements.uCurrSens[shutdownInfo.faultIndex]
 					- (int32_t)gInverterMeasurements.uCurrOffsetU) * -AMPERES_PER_BIT;
 			shutdownInfo.thresholds.lowerThreshold = -(float)(AnalogWDGConfig_Currents.HighThreshold
@@ -185,8 +185,8 @@ void getShutdownInfo(measurementType_t measurementType, uint32_t dmaIndex)
 					- AnalogWDGConfig_Currents.LowThreshold) * AMPERES_PER_BIT;
 			break;
 		case 1:
-			shutdownInfo.shutdownType =
-					OVER_CURRENT_SHUTDOWN_PHASE_V;
+			shutdownInfo.faultType =
+					OVER_CURRENT_FAULT_PHASE_V;
 			shutdownInfo.measured = (float)((int32_t)gInverterMeasurements.uCurrSens[shutdownInfo.faultIndex]
 					- (int32_t)gInverterMeasurements.uCurrOffsetV) * AMPERES_PER_BIT;
 			shutdownInfo.thresholds.lowerThreshold = -(float)(gInverterMeasurements.uCurrOffsetV - AnalogWDGConfig_Currents.LowThreshold)
@@ -195,7 +195,7 @@ void getShutdownInfo(measurementType_t measurementType, uint32_t dmaIndex)
 					* AMPERES_PER_BIT;
 			break;
 		case 2:
-			shutdownInfo.shutdownType = OVER_CURRENT_SHUTDOWN_PHASE_W;
+			shutdownInfo.faultType = OVER_CURRENT_FAULT_PHASE_W;
 			shutdownInfo.measured = (float)((int32_t)gInverterMeasurements.uCurrSens[shutdownInfo.faultIndex]
 					- (int32_t)gInverterMeasurements.uCurrOffsetW) * AMPERES_PER_BIT;
 			shutdownInfo.thresholds.lowerThreshold = -(float)(gInverterMeasurements.uCurrOffsetW - AnalogWDGConfig_Currents.LowThreshold)

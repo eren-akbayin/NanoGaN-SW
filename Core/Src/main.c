@@ -53,6 +53,8 @@
 
 inverterMeasurementsTypeDef_t gInverterMeasurements = { 0 };
 
+shutdownType_t gShutdownType = OC;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
