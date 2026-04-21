@@ -35,6 +35,7 @@
 #include "stdlib.h"
 #include "usart.h"
 #include "shutdown.h"
+#include "arm_math.h"
 
 /* USER CODE END Includes */
 
@@ -46,7 +47,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define MAX_CURRENT 5.0f
+#define MAX_CURRENT 3.0f
 #define MIN_VOLTAGE 11.5f
 #define MAX_VOLTAGE 13.5f
 
@@ -136,18 +137,18 @@ void tx_nanogan_fsm_app(ULONG thread_input)
 
 	calibrateSensorsSetShutdowns(MAX_CURRENT, MIN_VOLTAGE, MAX_VOLTAGE);
 
-	//HAL_TIM_Base_Start_IT(&htim4);
+	HAL_TIM_Base_Start_IT(&htim4);
 
 	// Write high to the MOSI to always get compensated angle
 	HAL_GPIO_WritePin(SPI2_MOSI_GPIO_Port, SPI2_MOSI_Pin, GPIO_PIN_SET);
 
 	// Wait for DMA buffers to get full
 
-	TIM1->CCR3 = uDuty;
+	TIM1->CCR3 = ARR_VAL>>1;
 
-	TIM1->CCR2 = uDuty;
+	TIM1->CCR2 = ARR_VAL>>1;
 
-	TIM1->CCR1 = uDuty;
+	TIM1->CCR1 = ARR_VAL>>1;
 
 	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
@@ -169,6 +170,7 @@ void tx_nanogan_fsm_app(ULONG thread_input)
 		fDcLinkVoltage = (float)(gInverterMeasurements.uDcLinkVoltage[0]) * VOLTS_PER_BIT;
 
 		TIM1->CCR3 = uDuty;
+
 		tx_thread_sleep(1);
 	}
 

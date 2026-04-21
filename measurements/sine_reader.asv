@@ -1,0 +1,19 @@
+clc
+
+clear
+
+fid = fopen('sine4.bin', 'rb');
+
+sine  = fread(fid, 1000, 'float');
+
+sine1  = fread(fid, 1000, 'float');
+
+sine2  = fread(fid, 1000, 'float');
+
+plot(sine)
+
+hold on;
+
+plot(sine1)
+
+plo
