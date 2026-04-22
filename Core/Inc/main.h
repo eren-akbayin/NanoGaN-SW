@@ -77,6 +77,11 @@ typedef enum
 
 extern shutdownType_t gShutdownType;
 
+extern volatile float fAngleEl;
+
+extern volatile float fDutyD;
+extern volatile float fDutyQ;
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -146,7 +151,12 @@ void Error_Handler(void);
 #define BITS_PER_VOLT 790.0f/12.0f
 #define DEGREE_PER_BIT 360.0f/16384.0f
 
+#define DEGREES_PER_BIT 2*PI/65536.0f
+
 #define ARR_VAL 6874
+
+#define POLE_PAIR 4
+#define ANGLE_OFFSET 20801
 
 /* USER CODE END Private defines */
 

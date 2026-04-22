@@ -55,6 +55,12 @@ inverterMeasurementsTypeDef_t gInverterMeasurements = { 0 };
 
 shutdownType_t gShutdownType = OC;
 
+volatile float fAngleEl = 0;
+
+volatile float fDutyD = 0;
+
+volatile float fDutyQ = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
