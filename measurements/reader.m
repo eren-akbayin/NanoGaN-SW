@@ -2,7 +2,7 @@ clc
 
 clear
 
-fid = fopen('measurement16.bin', 'rb');
+fid = fopen('measurement17.bin', 'rb');
 
 %% Read header fields (all uint32 or float, 4 bytes each)
 bufferSize      = fread(fid, 1, 'uint32');   % bufferSize (= MEASUREMENT_SIZE)

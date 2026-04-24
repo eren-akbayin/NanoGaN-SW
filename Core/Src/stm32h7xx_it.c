@@ -38,6 +38,8 @@
 
 #define VOLTAGE_DMA_NDTR 0x40020414 //DMA2 Stream 0 NDTR
 
+#define SAMPLE_FREQ  1.0f/10000.0f   // 10 kHz
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -51,8 +53,15 @@
 volatile uint32_t uNumberOfNops = 500;
 
 volatile float increment = 2 * PI * 1 * 1e-3;
-volatile float angle = 0;
+
 volatile uint32_t uDTC[3];
+volatile uint32_t index_sine = 0;
+
+volatile float frequency = 0.0f;       // desired frequency in Hz
+
+volatile float fDuty = 0;
+
+volatile float fAngleDiff;
 
 /* USER CODE END PV */
 
@@ -224,20 +233,29 @@ void ADC_IRQHandler(void)
 void TIM4_IRQHandler(void)
 {
 	/* USER CODE BEGIN TIM4_IRQn 0 */
-	// Inverse Park
-	float Valpha = fDutyD * arm_cos_f32(fAngleEl) - fDutyQ * arm_sin_f32(fAngleEl);
-	float Vbeta = fDutyD * arm_sin_f32(fAngleEl) + fDutyQ * arm_cos_f32(fAngleEl);
 
-	// Inverse Clarke → 3-phase duty cycles
-	uDTC[0] = (uint32_t)((Valpha) * 3437.0f + 3437.0f);
-	uDTC[1] = (uint32_t)((-Valpha * 0.5f + Vbeta * 0.866025f) * 3437.0f + 3437.0f);
-	uDTC[2] = (uint32_t)((-Valpha * 0.5f - Vbeta * 0.866025f) * 3437.0f + 3437.0f);
+	uDTC[0] = (uint32_t)(arm_sin_f32(angle) * fDuty * 3437.0f + 3437.0f);
+	uDTC[1] = (uint32_t)(arm_sin_f32(angle + 2.0f * PI / 3.0f) * fDuty * 3437.0f + 3437.0f);
+	uDTC[2] = (uint32_t)(arm_sin_f32(angle - 2.0f * PI / 3.0f) * fDuty * 3437.0f + 3437.0f);
 
 	TIM1->CCR3 = uDTC[0];
 
 	TIM1->CCR2 = uDTC[1];
 
 	TIM1->CCR1 = uDTC[2];
+
+	increment = (2.0f * PI * frequency) * SAMPLE_FREQ;
+	angle = angle + increment;
+
+	fAngleDiff = fAngleEl - angle;
+
+	index_sine++;
+
+	if (angle >= 2.0f * PI)
+		angle -= 2.0f * PI;
+
+	if (index_sine >= 1000)
+		index_sine = 0;
 
 	/* USER CODE END TIM4_IRQn 0 */
 	HAL_TIM_IRQHandler(&htim4);

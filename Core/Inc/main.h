@@ -78,6 +78,11 @@ typedef enum
 extern shutdownType_t gShutdownType;
 
 extern volatile float fAngleEl;
+extern volatile float fAngleMech;
+
+extern volatile float fAngle[3][2000];
+
+extern volatile float angle;
 
 extern volatile float fDutyD;
 extern volatile float fDutyQ;
@@ -156,7 +161,7 @@ void Error_Handler(void);
 #define ARR_VAL 6874
 
 #define POLE_PAIR 4
-#define ANGLE_OFFSET 20801
+#define ANGLE_OFFSET 16683
 
 /* USER CODE END Private defines */
 

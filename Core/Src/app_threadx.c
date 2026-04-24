@@ -86,8 +86,6 @@ volatile uint16_t uAngleEl;
 
 volatile uint16_t uAngleMech;
 
-volatile uint16_t uAngle[2][2000];
-
 volatile int32_t indexAngle;
 
 /* USER CODE END PV */
@@ -189,6 +187,8 @@ void tx_nanogan_fsm_app(ULONG thread_input)
 
 		fAngleEl = (float)(uAngleEl) * DEGREES_PER_BIT;
 
+		fAngleMech = (float)(uAngleMech) * DEGREES_PER_BIT;
+
 		if (indexAngle >= 2000)
 		{
 			indexAngle = -1;
@@ -196,8 +196,9 @@ void tx_nanogan_fsm_app(ULONG thread_input)
 		}
 		else if ( indexAngle >= 0)
 		{
-			uAngle[0][indexAngle] = uAngleMech;
-			uAngle[1][indexAngle] = uAngleEl;
+			fAngle[0][indexAngle] = fAngleMech;
+			fAngle[1][indexAngle] = fAngleEl;
+			fAngle[2][indexAngle] = angle;
 			indexAngle++;
 
 		}

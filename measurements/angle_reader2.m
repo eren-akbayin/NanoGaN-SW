@@ -4,7 +4,7 @@ clear
 
 time = (0:1:1999)*1e-3;
 
-fid = fopen(['angle_meas10.bin'], 'rb');
+fid = fopen(['angle_meas11.bin'], 'rb');
 
 angle1  = fread(fid, 2000, 'uint16');
 

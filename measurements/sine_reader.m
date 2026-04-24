@@ -4,7 +4,7 @@ clear
 
 time = (0:1:999)*1e-3;
 
-fid = fopen(['sine12.bin'], 'rb');
+fid = fopen(['sine13.bin'], 'rb');
 
 sine0  = fread(fid, 1000, 'uint32');
 
