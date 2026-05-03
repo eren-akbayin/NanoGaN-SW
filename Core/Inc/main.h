@@ -37,7 +37,7 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
-#define MEASUREMENT_SIZE 8000
+#define MEASUREMENT_SIZE 6000
 
 typedef struct {
 	//Buffer length
@@ -80,7 +80,7 @@ extern shutdownType_t gShutdownType;
 extern volatile float fAngleEl;
 extern volatile float fAngleMech;
 
-extern volatile float fAngle[3][2000];
+extern volatile float fAngle[2000];
 
 extern volatile float angle;
 
@@ -161,7 +161,7 @@ void Error_Handler(void);
 #define ARR_VAL 6874
 
 #define POLE_PAIR 4
-#define ANGLE_OFFSET 16683
+#define ANGLE_OFFSET 36428//35051
 
 /* USER CODE END Private defines */
 

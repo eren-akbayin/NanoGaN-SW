@@ -53,6 +53,8 @@
 
 #define TRACEX_BUFFER_SIZE 64000
 
+#define TWO_THIRDS_PI  (2.0f / 3.0f * PI)   // ≈ 2.0944 rad
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -75,9 +77,9 @@ volatile uint16_t uAngleRaw;
 volatile uint8_t uHallRead = 0;
 
 // Converted Measurement
-volatile float fCurrentU;
-volatile float fCurrentV;
-volatile float fCurrentW;
+volatile float fCurrent[3][2000];
+volatile float fCurrentD;
+volatile float fCurrentQ;
 volatile float fDcLinkVoltage;
 
 volatile uint16_t uAngleRaw;
@@ -173,12 +175,14 @@ void tx_nanogan_fsm_app(ULONG thread_input)
 	 */
 	while (1)
 	{
-		fCurrentU = (float)((int32_t)gInverterMeasurements.uCurrSens[0] - (int32_t)gInverterMeasurements.uCurrOffsetU)
-				* -AMPERES_PER_BIT;
-		fCurrentV = (float)((int32_t)gInverterMeasurements.uCurrSens[1] - (int32_t)gInverterMeasurements.uCurrOffsetV)
-				* AMPERES_PER_BIT;
-		fCurrentW = (float)((int32_t)gInverterMeasurements.uCurrSens[2] - (int32_t)gInverterMeasurements.uCurrOffsetW)
-				* AMPERES_PER_BIT;
+
+//		fCurrentD = (  fCurrentU * arm_cos_f32(fAngleEl)
+//		             + fCurrentV * arm_cos_f32(fAngleEl - TWO_THIRDS_PI)
+//		             + fCurrentW * arm_cos_f32(fAngleEl + TWO_THIRDS_PI)) * 2.0f/3.0f;
+//
+//		fCurrentQ = (- fCurrentU * arm_sin_f32(fAngleEl)
+//		             - fCurrentV * arm_sin_f32(fAngleEl - TWO_THIRDS_PI)
+//		             - fCurrentW * arm_sin_f32(fAngleEl + TWO_THIRDS_PI)) * 2.0f/3.0f;
 		fDcLinkVoltage = (float)(gInverterMeasurements.uDcLinkVoltage[0]) * VOLTS_PER_BIT;
 
 		uAngleMech = ((uAngleRaw & 0x3FFF) << 2 ) + ANGLE_OFFSET;
@@ -196,9 +200,14 @@ void tx_nanogan_fsm_app(ULONG thread_input)
 		}
 		else if ( indexAngle >= 0)
 		{
-			fAngle[0][indexAngle] = fAngleMech;
-			fAngle[1][indexAngle] = fAngleEl;
-			fAngle[2][indexAngle] = angle;
+			fAngle[indexAngle] = fAngleEl;
+
+			fCurrent[0][indexAngle] = (float)((int32_t)gInverterMeasurements.uCurrSens[0] - (int32_t)gInverterMeasurements.uCurrOffsetU)
+					* -AMPERES_PER_BIT;
+			fCurrent[1][indexAngle] = (float)((int32_t)gInverterMeasurements.uCurrSens[1] - (int32_t)gInverterMeasurements.uCurrOffsetV)
+					* AMPERES_PER_BIT;
+			fCurrent[2][indexAngle] = (float)((int32_t)gInverterMeasurements.uCurrSens[2] - (int32_t)gInverterMeasurements.uCurrOffsetW)
+					* AMPERES_PER_BIT;
 			indexAngle++;
 
 		}

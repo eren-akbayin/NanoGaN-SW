@@ -59,7 +59,7 @@ volatile uint32_t index_sine = 0;
 
 volatile float frequency = 0.0f;       // desired frequency in Hz
 
-volatile float fDuty = 0;
+volatile float fDuty;
 
 volatile float fAngleDiff;
 
@@ -234,17 +234,22 @@ void TIM4_IRQHandler(void)
 {
 	/* USER CODE BEGIN TIM4_IRQn 0 */
 
-	uDTC[0] = (uint32_t)(arm_sin_f32(angle) * fDuty * 3437.0f + 3437.0f);
-	uDTC[1] = (uint32_t)(arm_sin_f32(angle + 2.0f * PI / 3.0f) * fDuty * 3437.0f + 3437.0f);
-	uDTC[2] = (uint32_t)(arm_sin_f32(angle - 2.0f * PI / 3.0f) * fDuty * 3437.0f + 3437.0f);
+	float Valpha = fDutyD * arm_cos_f32(fAngleEl) - fDutyQ * arm_sin_f32(fAngleEl);
+	float Vbeta = fDutyD * arm_sin_f32(fAngleEl) + fDutyQ * arm_cos_f32(fAngleEl);
 
-	TIM1->CCR3 = uDTC[0];
+	// Inverse Clarke → 3-phase duty cycles
+	uDTC[0] = (uint32_t)((Valpha) * 3437.0f + 3437.0f);
+	uDTC[1] = (uint32_t)((-Valpha * 0.5f + Vbeta * 0.866025f) * 3437.0f + 3437.0f);
+	uDTC[2] = (uint32_t)((-Valpha * 0.5f - Vbeta * 0.866025f) * 3437.0f + 3437.0f);
+
+	TIM1->CCR3 = uDTC[2];
 
 	TIM1->CCR2 = uDTC[1];
 
-	TIM1->CCR1 = uDTC[2];
+	TIM1->CCR1 = uDTC[0];
 
 	increment = (2.0f * PI * frequency) * SAMPLE_FREQ;
+
 	angle = angle + increment;
 
 	fAngleDiff = fAngleEl - angle;

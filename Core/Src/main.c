@@ -60,7 +60,7 @@ volatile float fAngleMech = 0;
 
 volatile float angle = 0;
 
-volatile float fAngle[3][2000];
+volatile float fAngle[2000];
 
 volatile float fDutyD = 0;
 
