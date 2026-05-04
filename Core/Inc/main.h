@@ -145,8 +145,10 @@ void Error_Handler(void);
 #define USR_BTN2_GPIO_Port GPIOA
 #define USR_BTN1_Pin GPIO_PIN_10
 #define USR_BTN1_GPIO_Port GPIOA
-#define LED_Fault_Pin GPIO_PIN_2
-#define LED_Fault_GPIO_Port GPIOD
+#define LED_FAULT_Pin GPIO_PIN_2
+#define LED_FAULT_GPIO_Port GPIOD
+#define LED_ACTIVE_Pin GPIO_PIN_5
+#define LED_ACTIVE_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

@@ -98,47 +98,47 @@ volatile int32_t indexAngle;
 /* USER CODE END PFP */
 
 /**
- * @brief  Application ThreadX Initialization.
- * @param memory_ptr: memory pointer
- * @retval int
- */
+  * @brief  Application ThreadX Initialization.
+  * @param memory_ptr: memory pointer
+  * @retval int
+  */
 UINT App_ThreadX_Init(VOID *memory_ptr)
 {
-	UINT ret = TX_SUCCESS;
-	TX_BYTE_POOL *byte_pool = (TX_BYTE_POOL*)memory_ptr;
-	/* USER CODE BEGIN App_ThreadX_MEM_POOL */
+  UINT ret = TX_SUCCESS;
+  TX_BYTE_POOL *byte_pool = (TX_BYTE_POOL*)memory_ptr;
+  /* USER CODE BEGIN App_ThreadX_MEM_POOL */
 
-	/* USER CODE END App_ThreadX_MEM_POOL */
-	CHAR *pointer;
+  /* USER CODE END App_ThreadX_MEM_POOL */
+  CHAR *pointer;
 
-	/* Allocate the stack for tx nanogan fsm thread  */
-	if (tx_byte_allocate(byte_pool, (VOID**)&pointer,
-	TX_APP_STACK_SIZE, TX_NO_WAIT) != TX_SUCCESS)
-	{
-		return TX_POOL_ERROR;
-	}
-	/* Create tx nanogan fsm thread.  */
-	if (tx_thread_create(&tx_app_thread, "tx nanogan fsm thread", tx_nanogan_fsm_app, 0, pointer,
-			TX_APP_STACK_SIZE, TX_APP_THREAD_PRIO, TX_APP_THREAD_PREEMPTION_THRESHOLD,
-			TX_APP_THREAD_TIME_SLICE, TX_APP_THREAD_AUTO_START) != TX_SUCCESS)
-	{
-		return TX_THREAD_ERROR;
-	}
+  /* Allocate the stack for tx nanogan fsm thread  */
+  if (tx_byte_allocate(byte_pool, (VOID**) &pointer,
+                       TX_APP_STACK_SIZE, TX_NO_WAIT) != TX_SUCCESS)
+  {
+    return TX_POOL_ERROR;
+  }
+  /* Create tx nanogan fsm thread.  */
+  if (tx_thread_create(&tx_app_thread, "tx nanogan fsm thread", tx_nanogan_fsm_app, 0, pointer,
+                       TX_APP_STACK_SIZE, TX_APP_THREAD_PRIO, TX_APP_THREAD_PREEMPTION_THRESHOLD,
+                       TX_APP_THREAD_TIME_SLICE, TX_APP_THREAD_AUTO_START) != TX_SUCCESS)
+  {
+    return TX_THREAD_ERROR;
+  }
 
-	/* USER CODE BEGIN App_ThreadX_Init */
+  /* USER CODE BEGIN App_ThreadX_Init */
 	tx_trace_enable(&tracex_buffer, TRACEX_BUFFER_SIZE, 30);
-	/* USER CODE END App_ThreadX_Init */
+  /* USER CODE END App_ThreadX_Init */
 
-	return ret;
+  return ret;
 }
 /**
- * @brief  Function implementing the tx_nanogan_fsm_app thread.
- * @param  thread_input: Hardcoded to 0.
- * @retval None
- */
+  * @brief  Function implementing the tx_nanogan_fsm_app thread.
+  * @param  thread_input: Hardcoded to 0.
+  * @retval None
+  */
 void tx_nanogan_fsm_app(ULONG thread_input)
 {
-	/* USER CODE BEGIN tx_nanogan_fsm_app */
+  /* USER CODE BEGIN tx_nanogan_fsm_app */
 
 	HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&uAngleRaw, 1);
 
@@ -215,32 +215,32 @@ void tx_nanogan_fsm_app(ULONG thread_input)
 		tx_thread_sleep(1);
 	}
 
-	/* USER CODE END tx_nanogan_fsm_app */
+  /* USER CODE END tx_nanogan_fsm_app */
 }
 
-/**
- * @brief  Function that implements the kernel's initialization.
- * @param  None
- * @retval None
- */
+  /**
+  * @brief  Function that implements the kernel's initialization.
+  * @param  None
+  * @retval None
+  */
 void MX_ThreadX_Init(void)
 {
-	/* USER CODE BEGIN  Before_Kernel_Start */
+  /* USER CODE BEGIN  Before_Kernel_Start */
 	const char *msg = "Kernel starting!\r\n";
 
 	HAL_UART_Transmit(&huart4, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
 
-	/* USER CODE END  Before_Kernel_Start */
+  /* USER CODE END  Before_Kernel_Start */
 
-	tx_kernel_enter();
+  tx_kernel_enter();
 
-	/* USER CODE BEGIN  Kernel_Start_Error */
+  /* USER CODE BEGIN  Kernel_Start_Error */
 
 	msg = "Kernel has failed to start!\r\n";
 
 	HAL_UART_Transmit(&huart4, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
 
-	/* USER CODE END  Kernel_Start_Error */
+  /* USER CODE END  Kernel_Start_Error */
 }
 
 /* USER CODE BEGIN 2 */
