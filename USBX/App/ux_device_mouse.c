@@ -62,75 +62,75 @@ UX_SLAVE_CLASS_HID *hid_mouse;
 /* USER CODE END 0 */
 
 /**
- * @brief  USBD_HID_Mouse_Activate
- *         This function is called when insertion of a HID Mouse device.
- * @param  hid_instance: Pointer to the hid class instance.
- * @retval none
- */
+  * @brief  USBD_HID_Mouse_Activate
+  *         This function is called when insertion of a HID Mouse device.
+  * @param  hid_instance: Pointer to the hid class instance.
+  * @retval none
+  */
 VOID USBD_HID_Mouse_Activate(VOID *hid_instance)
 {
-	/* USER CODE BEGIN USBD_HID_Mouse_Activate */
+  /* USER CODE BEGIN USBD_HID_Mouse_Activate */
 	hid_mouse = (UX_SLAVE_CLASS_HID*)hid_instance;
-	/* USER CODE END USBD_HID_Mouse_Activate */
+  /* USER CODE END USBD_HID_Mouse_Activate */
 
-	return;
+  return;
 }
 
 /**
- * @brief  USBD_HID_Mouse_Deactivate
- *         This function is called when extraction of a HID Mouse device.
- * @param  hid_instance: Pointer to the hid class instance.
- * @retval none
- */
+  * @brief  USBD_HID_Mouse_Deactivate
+  *         This function is called when extraction of a HID Mouse device.
+  * @param  hid_instance: Pointer to the hid class instance.
+  * @retval none
+  */
 VOID USBD_HID_Mouse_Deactivate(VOID *hid_instance)
 {
-	/* USER CODE BEGIN USBD_HID_Mouse_Deactivate */
+  /* USER CODE BEGIN USBD_HID_Mouse_Deactivate */
 	hid_mouse = UX_NULL;
-	/* USER CODE END USBD_HID_Mouse_Deactivate */
+  /* USER CODE END USBD_HID_Mouse_Deactivate */
 
-	return;
+  return;
 }
 
 /**
- * @brief  USBD_HID_Mouse_SetReport
- *         This function is invoked when the host sends a HID SET_REPORT
- *         to the application over Endpoint 0.
- * @param  hid_instance: Pointer to the hid class instance.
- * @param  hid_event: Pointer to structure of the hid event.
- * @retval status
- */
+  * @brief  USBD_HID_Mouse_SetReport
+  *         This function is invoked when the host sends a HID SET_REPORT
+  *         to the application over Endpoint 0.
+  * @param  hid_instance: Pointer to the hid class instance.
+  * @param  hid_event: Pointer to structure of the hid event.
+  * @retval status
+  */
 UINT USBD_HID_Mouse_SetReport(UX_SLAVE_CLASS_HID *hid_instance,
-		UX_SLAVE_CLASS_HID_EVENT *hid_event)
+                              UX_SLAVE_CLASS_HID_EVENT *hid_event)
 {
-	UINT status = UX_SUCCESS;
+  UINT status = UX_SUCCESS;
 
-	/* USER CODE BEGIN USBD_HID_Mouse_SetReport */
+  /* USER CODE BEGIN USBD_HID_Mouse_SetReport */
 	UX_PARAMETER_NOT_USED(hid_instance);
 	UX_PARAMETER_NOT_USED(hid_event);
-	/* USER CODE END USBD_HID_Mouse_SetReport */
+  /* USER CODE END USBD_HID_Mouse_SetReport */
 
-	return status;
+  return status;
 }
 
 /**
- * @brief  USBD_HID_Mouse_GetReport
- *         This function is invoked when host is requesting event through
- *         control GET_REPORT request.
- * @param  hid_instance: Pointer to the hid class instance.
- * @param  hid_event: Pointer to structure of the hid event.
- * @retval status
- */
+  * @brief  USBD_HID_Mouse_GetReport
+  *         This function is invoked when host is requesting event through
+  *         control GET_REPORT request.
+  * @param  hid_instance: Pointer to the hid class instance.
+  * @param  hid_event: Pointer to structure of the hid event.
+  * @retval status
+  */
 UINT USBD_HID_Mouse_GetReport(UX_SLAVE_CLASS_HID *hid_instance,
-		UX_SLAVE_CLASS_HID_EVENT *hid_event)
+                              UX_SLAVE_CLASS_HID_EVENT *hid_event)
 {
-	UINT status = UX_SUCCESS;
+  UINT status = UX_SUCCESS;
 
-	/* USER CODE BEGIN USBD_HID_Mouse_GetReport */
+  /* USER CODE BEGIN USBD_HID_Mouse_GetReport */
 	UX_PARAMETER_NOT_USED(hid_instance);
 	UX_PARAMETER_NOT_USED(hid_event);
-	/* USER CODE END USBD_HID_Mouse_GetReport */
+  /* USER CODE END USBD_HID_Mouse_GetReport */
 
-	return status;
+  return status;
 }
 
 /* USER CODE BEGIN 2 */

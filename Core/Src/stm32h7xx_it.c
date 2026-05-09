@@ -24,7 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "shutdown.h"
 #include "tim.h"
-#include "arm_math.h"
+#include "cordic.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,11 +57,16 @@ volatile float increment = 2 * PI * 1 * 1e-3;
 volatile uint32_t uDTC[3];
 volatile uint32_t index_sine = 0;
 
+volatile float cosine;
+volatile float sine;
+
+volatile float fAngleManual;
+
+volatile uint16_t uAngleManual=0;
+
 volatile float frequency = 0.0f;       // desired frequency in Hz
 
 volatile float fDuty;
-
-volatile float fAngleDiff;
 
 /* USER CODE END PV */
 
@@ -235,8 +240,24 @@ void TIM4_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM4_IRQn 0 */
 
-	float Valpha = fDutyD * arm_cos_f32(fAngleEl) - fDutyQ * arm_sin_f32(fAngleEl);
-	float Vbeta = fDutyD * arm_sin_f32(fAngleEl) + fDutyQ * arm_cos_f32(fAngleEl);
+	uAngleManual = (uint16_t)(fAngleManual / 360.0f * 65535.0f);
+
+	uint32_t uWriteData = 0x7FFF0000 | (uint32_t)uAngleManual;
+
+	uint32_t uRawData;
+
+	hcordic.Instance->WDATA = uWriteData;
+
+	uRawData= (int32_t)hcordic.Instance->RDATA;
+
+	cosine = (float)(int16_t)(uRawData)         *(1.0f/32767.0f);
+	sine   = (float)(int16_t)((uRawData >> 16)) *(1.0f/32767.0f);
+
+	float cos_alpha = 1;
+	float sine_alpha = 0;
+
+	float Valpha = fDutyD * cos_alpha - fDutyQ * sine_alpha;
+	float Vbeta = fDutyD * sine_alpha + fDutyQ * cos_alpha;
 
 	// Inverse Clarke → 3-phase duty cycles
 	uDTC[0] = (uint32_t)((Valpha) * 3437.0f + 3437.0f);
@@ -252,8 +273,6 @@ void TIM4_IRQHandler(void)
 	increment = (2.0f * PI * frequency) * SAMPLE_FREQ;
 
 	angle = angle + increment;
-
-	fAngleDiff = fAngleEl - angle;
 
 	index_sine++;
 

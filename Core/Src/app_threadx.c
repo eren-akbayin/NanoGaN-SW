@@ -35,7 +35,6 @@
 #include "stdlib.h"
 #include "usart.h"
 #include "shutdown.h"
-#include "arm_math.h"
 
 /* USER CODE END Includes */
 
@@ -83,10 +82,6 @@ volatile float fCurrentQ;
 volatile float fDcLinkVoltage;
 
 volatile uint16_t uAngleRaw;
-
-volatile uint16_t uAngleEl;
-
-volatile uint16_t uAngleMech;
 
 volatile int32_t indexAngle;
 
@@ -153,8 +148,6 @@ void tx_nanogan_fsm_app(ULONG thread_input)
 
 	uAngleEl = uAngleMech * POLE_PAIR;
 
-	fAngleEl = (float)(uAngleEl) * DEGREES_PER_BIT;
-
 	// Wait for DMA buffers to get full
 
 	TIM1->CCR3 = ARR_VAL >> 1;
@@ -176,22 +169,12 @@ void tx_nanogan_fsm_app(ULONG thread_input)
 	while (1)
 	{
 
-//		fCurrentD = (  fCurrentU * arm_cos_f32(fAngleEl)
-//		             + fCurrentV * arm_cos_f32(fAngleEl - TWO_THIRDS_PI)
-//		             + fCurrentW * arm_cos_f32(fAngleEl + TWO_THIRDS_PI)) * 2.0f/3.0f;
-//
-//		fCurrentQ = (- fCurrentU * arm_sin_f32(fAngleEl)
-//		             - fCurrentV * arm_sin_f32(fAngleEl - TWO_THIRDS_PI)
-//		             - fCurrentW * arm_sin_f32(fAngleEl + TWO_THIRDS_PI)) * 2.0f/3.0f;
 		fDcLinkVoltage = (float)(gInverterMeasurements.uDcLinkVoltage[0]) * VOLTS_PER_BIT;
 
 		uAngleMech = ((uAngleRaw & 0x3FFF) << 2 ) + ANGLE_OFFSET;
 
 		uAngleEl = uAngleMech * POLE_PAIR;
 
-		fAngleEl = (float)(uAngleEl) * DEGREES_PER_BIT;
-
-		fAngleMech = (float)(uAngleMech) * DEGREES_PER_BIT;
 
 		if (indexAngle >= 2000)
 		{
@@ -200,7 +183,6 @@ void tx_nanogan_fsm_app(ULONG thread_input)
 		}
 		else if ( indexAngle >= 0)
 		{
-			fAngle[indexAngle] = fAngleEl;
 
 			fCurrent[0][indexAngle] = (float)((int32_t)gInverterMeasurements.uCurrSens[0] - (int32_t)gInverterMeasurements.uCurrOffsetU)
 					* -AMPERES_PER_BIT;

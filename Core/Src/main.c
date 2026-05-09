@@ -20,6 +20,7 @@
 #include "app_threadx.h"
 #include "main.h"
 #include "adc.h"
+#include "cordic.h"
 #include "dma.h"
 #include "spi.h"
 #include "tim.h"
@@ -55,8 +56,9 @@ inverterMeasurementsTypeDef_t gInverterMeasurements = { 0 };
 
 shutdownType_t gShutdownType = OC;
 
-volatile float fAngleEl = 0;
-volatile float fAngleMech = 0;
+volatile uint16_t uAngleEl;
+
+volatile uint16_t uAngleMech;
 
 volatile float angle = 0;
 
@@ -129,6 +131,7 @@ int main(void)
   MX_ADC2_Init();
   MX_TIM2_Init();
   MX_TIM4_Init();
+  MX_CORDIC_Init();
   /* USER CODE BEGIN 2 */
 
 

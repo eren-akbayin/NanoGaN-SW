@@ -77,10 +77,10 @@ typedef enum
 
 extern shutdownType_t gShutdownType;
 
-extern volatile float fAngleEl;
-extern volatile float fAngleMech;
 
-extern volatile float fAngle[2000];
+extern volatile uint16_t uAngleEl;
+
+extern volatile uint16_t uAngleMech;
 
 extern volatile float angle;
 
@@ -151,6 +151,8 @@ void Error_Handler(void);
 #define LED_ACTIVE_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
+
+#define PI 3.14159265359f
 
 #define VOLTS_PER_BIT 12.0f/790.0f
 #define AMPERES_PER_BIT 80.0f/4096.0f

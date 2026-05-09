@@ -150,10 +150,11 @@ VOID usbx_cdc_write_thread_entry(ULONG thread_input)
 	{
 		/* Check if device is configured */
 		if ((device->ux_slave_device_state == UX_DEVICE_CONFIGURED) && (cdc_acm != UX_NULL))
-				{
-			ux_device_class_cdc_acm_write(cdc_acm, (UCHAR*)UserTxMessage, sizeof(UserTxMessage), &actual_length);
+		{
+			//gInverterMeasurements.uPhaseSens
+			ux_device_class_cdc_acm_write(cdc_acm, (UCHAR*)gInverterMeasurements.uPhaseSens, sizeof(gInverterMeasurements.uPhaseSens), &actual_length);
 			/* Sleep for 1s */
-			tx_thread_sleep(100);
+			//tx_thread_sleep(1);
 		}
 	}
 }
