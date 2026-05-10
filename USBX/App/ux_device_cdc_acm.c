@@ -63,48 +63,48 @@ const uint8_t UserTxMessage[] = "MY CDC CLASS IS RUNNING!\r\n";
 /* USER CODE END 0 */
 
 /**
-  * @brief  USBD_CDC_ACM_Activate
-  *         This function is called when insertion of a CDC ACM device.
-  * @param  cdc_acm_instance: Pointer to the cdc acm class instance.
-  * @retval none
-  */
+ * @brief  USBD_CDC_ACM_Activate
+ *         This function is called when insertion of a CDC ACM device.
+ * @param  cdc_acm_instance: Pointer to the cdc acm class instance.
+ * @retval none
+ */
 VOID USBD_CDC_ACM_Activate(VOID *cdc_acm_instance)
 {
-  /* USER CODE BEGIN USBD_CDC_ACM_Activate */
+	/* USER CODE BEGIN USBD_CDC_ACM_Activate */
 	cdc_acm = (UX_SLAVE_CLASS_CDC_ACM*)cdc_acm_instance;
-  /* USER CODE END USBD_CDC_ACM_Activate */
+	/* USER CODE END USBD_CDC_ACM_Activate */
 
-  return;
+	return;
 }
 
 /**
-  * @brief  USBD_CDC_ACM_Deactivate
-  *         This function is called when extraction of a CDC ACM device.
-  * @param  cdc_acm_instance: Pointer to the cdc acm class instance.
-  * @retval none
-  */
+ * @brief  USBD_CDC_ACM_Deactivate
+ *         This function is called when extraction of a CDC ACM device.
+ * @param  cdc_acm_instance: Pointer to the cdc acm class instance.
+ * @retval none
+ */
 VOID USBD_CDC_ACM_Deactivate(VOID *cdc_acm_instance)
 {
-  /* USER CODE BEGIN USBD_CDC_ACM_Deactivate */
+	/* USER CODE BEGIN USBD_CDC_ACM_Deactivate */
 	cdc_acm = UX_NULL;
-  /* USER CODE END USBD_CDC_ACM_Deactivate */
+	/* USER CODE END USBD_CDC_ACM_Deactivate */
 
-  return;
+	return;
 }
 
 /**
-  * @brief  USBD_CDC_ACM_ParameterChange
-  *         This function is invoked to manage the CDC ACM class requests.
-  * @param  cdc_acm_instance: Pointer to the cdc acm class instance.
-  * @retval none
-  */
+ * @brief  USBD_CDC_ACM_ParameterChange
+ *         This function is invoked to manage the CDC ACM class requests.
+ * @param  cdc_acm_instance: Pointer to the cdc acm class instance.
+ * @retval none
+ */
 VOID USBD_CDC_ACM_ParameterChange(VOID *cdc_acm_instance)
 {
-  /* USER CODE BEGIN USBD_CDC_ACM_ParameterChange */
+	/* USER CODE BEGIN USBD_CDC_ACM_ParameterChange */
 	UX_PARAMETER_NOT_USED(cdc_acm_instance);
-  /* USER CODE END USBD_CDC_ACM_ParameterChange */
+	/* USER CODE END USBD_CDC_ACM_ParameterChange */
 
-  return;
+	return;
 }
 
 /* USER CODE BEGIN 2 */
@@ -134,9 +134,10 @@ VOID usbx_cdc_read_thread_entry(ULONG thread_input)
 				}
 			}
 		}
+		tx_thread_sleep(1);
 	}
 	/* Sleep for 10ms */
-	tx_thread_sleep(1);
+
 }
 
 VOID usbx_cdc_write_thread_entry(ULONG thread_input)
@@ -150,9 +151,10 @@ VOID usbx_cdc_write_thread_entry(ULONG thread_input)
 	{
 		/* Check if device is configured */
 		if ((device->ux_slave_device_state == UX_DEVICE_CONFIGURED) && (cdc_acm != UX_NULL))
-		{
+				{
 			//gInverterMeasurements.uPhaseSens
-			ux_device_class_cdc_acm_write(cdc_acm, (UCHAR*)gInverterMeasurements.uPhaseSens, sizeof(gInverterMeasurements.uPhaseSens), &actual_length);
+			ux_device_class_cdc_acm_write(cdc_acm, (UCHAR*)gInverterMeasurements.uPhaseSens, sizeof(gInverterMeasurements.uPhaseSens),
+					&actual_length);
 			/* Sleep for 1s */
 			//tx_thread_sleep(1);
 		}

@@ -38,8 +38,6 @@
 
 #define VOLTAGE_DMA_NDTR 0x40020414 //DMA2 Stream 0 NDTR
 
-#define SAMPLE_FREQ  1.0f/10000.0f   // 10 kHz
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -50,23 +48,19 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 
+volatile uint8_t uAngleSelection = 0;
+
 volatile uint32_t uNumberOfNops = 500;
 
-volatile float increment = 2 * PI * 1 * 1e-3;
+volatile uint16_t uAngle = 0;
+volatile uint16_t uIncrement = 0;
+volatile uint16_t uAngleManual = 0;
 
 volatile uint32_t uDTC[3];
 volatile uint32_t index_sine = 0;
 
-volatile float cosine;
-volatile float sine;
-
-volatile float fAngleManual;
-
-volatile uint16_t uAngleManual=0;
-
-volatile float frequency = 0.0f;       // desired frequency in Hz
-
-volatile float fDuty;
+volatile float fCosAlpha;
+volatile float fSinAlpha;
 
 /* USER CODE END PV */
 
@@ -97,91 +91,91 @@ extern TIM_HandleTypeDef htim6;
 /*           Cortex Processor Interruption and Exception Handlers          */
 /******************************************************************************/
 /**
-  * @brief This function handles Non maskable interrupt.
-  */
+ * @brief This function handles Non maskable interrupt.
+ */
 void NMI_Handler(void)
 {
-  /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
+	/* USER CODE BEGIN NonMaskableInt_IRQn 0 */
 
-  /* USER CODE END NonMaskableInt_IRQn 0 */
-  /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
+	/* USER CODE END NonMaskableInt_IRQn 0 */
+	/* USER CODE BEGIN NonMaskableInt_IRQn 1 */
 	while (1)
 	{
 	}
-  /* USER CODE END NonMaskableInt_IRQn 1 */
+	/* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
 /**
-  * @brief This function handles Hard fault interrupt.
-  */
+ * @brief This function handles Hard fault interrupt.
+ */
 void HardFault_Handler(void)
 {
-  /* USER CODE BEGIN HardFault_IRQn 0 */
+	/* USER CODE BEGIN HardFault_IRQn 0 */
 
-  /* USER CODE END HardFault_IRQn 0 */
-  while (1)
-  {
-    /* USER CODE BEGIN W1_HardFault_IRQn 0 */
-    /* USER CODE END W1_HardFault_IRQn 0 */
-  }
+	/* USER CODE END HardFault_IRQn 0 */
+	while (1)
+	{
+		/* USER CODE BEGIN W1_HardFault_IRQn 0 */
+		/* USER CODE END W1_HardFault_IRQn 0 */
+	}
 }
 
 /**
-  * @brief This function handles Memory management fault.
-  */
+ * @brief This function handles Memory management fault.
+ */
 void MemManage_Handler(void)
 {
-  /* USER CODE BEGIN MemoryManagement_IRQn 0 */
+	/* USER CODE BEGIN MemoryManagement_IRQn 0 */
 
-  /* USER CODE END MemoryManagement_IRQn 0 */
-  while (1)
-  {
-    /* USER CODE BEGIN W1_MemoryManagement_IRQn 0 */
-    /* USER CODE END W1_MemoryManagement_IRQn 0 */
-  }
+	/* USER CODE END MemoryManagement_IRQn 0 */
+	while (1)
+	{
+		/* USER CODE BEGIN W1_MemoryManagement_IRQn 0 */
+		/* USER CODE END W1_MemoryManagement_IRQn 0 */
+	}
 }
 
 /**
-  * @brief This function handles Pre-fetch fault, memory access fault.
-  */
+ * @brief This function handles Pre-fetch fault, memory access fault.
+ */
 void BusFault_Handler(void)
 {
-  /* USER CODE BEGIN BusFault_IRQn 0 */
+	/* USER CODE BEGIN BusFault_IRQn 0 */
 
-  /* USER CODE END BusFault_IRQn 0 */
-  while (1)
-  {
-    /* USER CODE BEGIN W1_BusFault_IRQn 0 */
-    /* USER CODE END W1_BusFault_IRQn 0 */
-  }
+	/* USER CODE END BusFault_IRQn 0 */
+	while (1)
+	{
+		/* USER CODE BEGIN W1_BusFault_IRQn 0 */
+		/* USER CODE END W1_BusFault_IRQn 0 */
+	}
 }
 
 /**
-  * @brief This function handles Undefined instruction or illegal state.
-  */
+ * @brief This function handles Undefined instruction or illegal state.
+ */
 void UsageFault_Handler(void)
 {
-  /* USER CODE BEGIN UsageFault_IRQn 0 */
+	/* USER CODE BEGIN UsageFault_IRQn 0 */
 
-  /* USER CODE END UsageFault_IRQn 0 */
-  while (1)
-  {
-    /* USER CODE BEGIN W1_UsageFault_IRQn 0 */
-    /* USER CODE END W1_UsageFault_IRQn 0 */
-  }
+	/* USER CODE END UsageFault_IRQn 0 */
+	while (1)
+	{
+		/* USER CODE BEGIN W1_UsageFault_IRQn 0 */
+		/* USER CODE END W1_UsageFault_IRQn 0 */
+	}
 }
 
 /**
-  * @brief This function handles Debug monitor.
-  */
+ * @brief This function handles Debug monitor.
+ */
 void DebugMon_Handler(void)
 {
-  /* USER CODE BEGIN DebugMonitor_IRQn 0 */
+	/* USER CODE BEGIN DebugMonitor_IRQn 0 */
 
-  /* USER CODE END DebugMonitor_IRQn 0 */
-  /* USER CODE BEGIN DebugMonitor_IRQn 1 */
+	/* USER CODE END DebugMonitor_IRQn 0 */
+	/* USER CODE BEGIN DebugMonitor_IRQn 1 */
 
-  /* USER CODE END DebugMonitor_IRQn 1 */
+	/* USER CODE END DebugMonitor_IRQn 1 */
 }
 
 /******************************************************************************/
@@ -192,11 +186,11 @@ void DebugMon_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles ADC1 and ADC2 global interrupts.
-  */
+ * @brief This function handles ADC1 and ADC2 global interrupts.
+ */
 void ADC_IRQHandler(void)
 {
-  /* USER CODE BEGIN ADC_IRQn 0 */
+	/* USER CODE BEGIN ADC_IRQn 0 */
 
 	switch (gShutdownType)
 	{
@@ -225,39 +219,52 @@ void ADC_IRQHandler(void)
 	getShutdownInfo(CURRENT, 3 * MEASUREMENT_SIZE - *(volatile uint32_t*) CURRENT_DMA_NDTR);
 
 	HAL_GPIO_WritePin(LED_FAULT_GPIO_Port, LED_FAULT_Pin, GPIO_PIN_SET);
-  /* USER CODE END ADC_IRQn 0 */
-  HAL_ADC_IRQHandler(&hadc1);
-  HAL_ADC_IRQHandler(&hadc2);
-  /* USER CODE BEGIN ADC_IRQn 1 */
+	/* USER CODE END ADC_IRQn 0 */
+	HAL_ADC_IRQHandler(&hadc1);
+	HAL_ADC_IRQHandler(&hadc2);
+	/* USER CODE BEGIN ADC_IRQn 1 */
 
-  /* USER CODE END ADC_IRQn 1 */
+	/* USER CODE END ADC_IRQn 1 */
 }
 
 /**
-  * @brief This function handles TIM4 global interrupt.
-  */
+ * @brief This function handles TIM4 global interrupt.
+ */
 void TIM4_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM4_IRQn 0 */
+	/* USER CODE BEGIN TIM4_IRQn 0 */
 
-	uAngleManual = (uint16_t)(fAngleManual / 360.0f * 65535.0f);
+	uint16_t uAngleSelected;
 
-	uint32_t uWriteData = 0x7FFF0000 | (uint32_t)uAngleManual;
+	switch (uAngleSelection)
+	{
+	case 0:
+		uAngleSelected = uAngleManual;
+		break;
+	case 1:
+		uAngleSelected = uAngle;
+		break;
+	case 2:
+		uAngleSelected = uAngleEl;
+		break;
+	default:
+		uAngleSelected = uAngleManual;
+		break;
+	}
+
+	uint32_t uWriteData = 0x7FFF0000 | (uint32_t)uAngleSelected;
 
 	uint32_t uRawData;
 
 	hcordic.Instance->WDATA = uWriteData;
 
-	uRawData= (int32_t)hcordic.Instance->RDATA;
+	uRawData = (int32_t)hcordic.Instance->RDATA;
 
-	cosine = (float)(int16_t)(uRawData)         *(1.0f/32767.0f);
-	sine   = (float)(int16_t)((uRawData >> 16)) *(1.0f/32767.0f);
+	fCosAlpha = (float)(int16_t)(uRawData) * (1.0f / 32767.0f);
+	fSinAlpha = (float)(int16_t)((uRawData >> 16)) * (1.0f / 32767.0f);
 
-	float cos_alpha = 1;
-	float sine_alpha = 0;
-
-	float Valpha = fDutyD * cos_alpha - fDutyQ * sine_alpha;
-	float Vbeta = fDutyD * sine_alpha + fDutyQ * cos_alpha;
+	float Valpha = fDutyD * fCosAlpha - fDutyQ * fSinAlpha;
+	float Vbeta = fDutyD * fSinAlpha + fDutyQ * fCosAlpha;
 
 	// Inverse Clarke → 3-phase duty cycles
 	uDTC[0] = (uint32_t)((Valpha) * 3437.0f + 3437.0f);
@@ -270,73 +277,63 @@ void TIM4_IRQHandler(void)
 
 	TIM1->CCR1 = uDTC[0];
 
-	increment = (2.0f * PI * frequency) * SAMPLE_FREQ;
+	uAngle = uAngle + uIncrement;
 
-	angle = angle + increment;
+	/* USER CODE END TIM4_IRQn 0 */
+	HAL_TIM_IRQHandler(&htim4);
+	/* USER CODE BEGIN TIM4_IRQn 1 */
 
-	index_sine++;
-
-	if (angle >= 2.0f * PI)
-		angle -= 2.0f * PI;
-
-	if (index_sine >= 1000)
-		index_sine = 0;
-
-  /* USER CODE END TIM4_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim4);
-  /* USER CODE BEGIN TIM4_IRQn 1 */
-
-  /* USER CODE END TIM4_IRQn 1 */
+	/* USER CODE END TIM4_IRQn 1 */
 }
 
 /**
-  * @brief This function handles SPI2 global interrupt.
-  */
+ * @brief This function handles SPI2 global interrupt.
+ */
 void SPI2_IRQHandler(void)
 {
-  /* USER CODE BEGIN SPI2_IRQn 0 */
+	/* USER CODE BEGIN SPI2_IRQn 0 */
 
-  /* USER CODE END SPI2_IRQn 0 */
-  HAL_SPI_IRQHandler(&hspi2);
-  /* USER CODE BEGIN SPI2_IRQn 1 */
+	/* USER CODE END SPI2_IRQn 0 */
+	HAL_SPI_IRQHandler(&hspi2);
+	/* USER CODE BEGIN SPI2_IRQn 1 */
 
-  /* USER CODE END SPI2_IRQn 1 */
+	/* USER CODE END SPI2_IRQn 1 */
 }
 
 /**
-  * @brief This function handles TIM6 global interrupt, DAC1_CH1 and DAC1_CH2 underrun error interrupts.
-  */
+ * @brief This function handles TIM6 global interrupt, DAC1_CH1 and DAC1_CH2 underrun error interrupts.
+ */
 void TIM6_DAC_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
+	/* USER CODE BEGIN TIM6_DAC_IRQn 0 */
 
-  /* USER CODE END TIM6_DAC_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim6);
-  /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
+	/* USER CODE END TIM6_DAC_IRQn 0 */
+	HAL_TIM_IRQHandler(&htim6);
+	/* USER CODE BEGIN TIM6_DAC_IRQn 1 */
 
-  /* USER CODE END TIM6_DAC_IRQn 1 */
+	/* USER CODE END TIM6_DAC_IRQn 1 */
 }
 
 /**
-  * @brief This function handles USB On The Go HS global interrupt.
-  */
+ * @brief This function handles USB On The Go HS global interrupt.
+ */
 void OTG_HS_IRQHandler(void)
 {
-  /* USER CODE BEGIN OTG_HS_IRQn 0 */
+	/* USER CODE BEGIN OTG_HS_IRQn 0 */
 
-  /* USER CODE END OTG_HS_IRQn 0 */
-  HAL_PCD_IRQHandler(&hpcd_USB_OTG_HS);
-  /* USER CODE BEGIN OTG_HS_IRQn 1 */
+	/* USER CODE END OTG_HS_IRQn 0 */
+	HAL_PCD_IRQHandler(&hpcd_USB_OTG_HS);
+	/* USER CODE BEGIN OTG_HS_IRQn 1 */
 
-  /* USER CODE END OTG_HS_IRQn 1 */
+	/* USER CODE END OTG_HS_IRQn 1 */
 }
 
 /**
-  * @brief This function handles ADC3 global interrupt.
-  */
+ * @brief This function handles ADC3 global interrupt.
+ */
 void ADC3_IRQHandler(void)
 {
-  /* USER CODE BEGIN ADC3_IRQn 0 */
+	/* USER CODE BEGIN ADC3_IRQn 0 */
 
 	TIM1->BDTR &= ~TIM_BDTR_MOE;
 
@@ -355,11 +352,11 @@ void ADC3_IRQHandler(void)
 
 	HAL_GPIO_WritePin(LED_FAULT_GPIO_Port, LED_FAULT_Pin, GPIO_PIN_SET);
 
-  /* USER CODE END ADC3_IRQn 0 */
-  HAL_ADC_IRQHandler(&hadc3);
-  /* USER CODE BEGIN ADC3_IRQn 1 */
+	/* USER CODE END ADC3_IRQn 0 */
+	HAL_ADC_IRQHandler(&hadc3);
+	/* USER CODE BEGIN ADC3_IRQn 1 */
 
-  /* USER CODE END ADC3_IRQn 1 */
+	/* USER CODE END ADC3_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

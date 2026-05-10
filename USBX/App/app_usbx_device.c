@@ -32,8 +32,6 @@
 #include "usb_otg.h"
 #include "ux_dcd_stm32.h"
 #include "ux_device_cdc_acm.h"
-#include "ux_device_mouse.h"
-
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,17 +51,13 @@
 
 /* Private variables ---------------------------------------------------------*/
 
-static ULONG hid_mouse_interface_number;
-static ULONG hid_mouse_configuration_number;
 static ULONG cdc_acm_interface_number;
 static ULONG cdc_acm_configuration_number;
-static UX_SLAVE_CLASS_HID_PARAMETER hid_mouse_parameter;
 static UX_SLAVE_CLASS_CDC_ACM_PARAMETER cdc_acm_parameter;
 static TX_THREAD ux_device_app_thread;
 
 /* USER CODE BEGIN PV */
 
-static TX_THREAD ux_hid_mouse_thread;
 static TX_THREAD ux_cdc_acm_read_thread;
 static TX_THREAD ux_cdc_acm_write_thread;
 
@@ -145,37 +139,6 @@ UINT MX_USBX_Device_Init(VOID *memory_ptr)
     /* USER CODE END USBX_DEVICE_INITIALIZE_ERROR */
   }
 
-  /* Initialize the hid mouse class parameters for the device */
-  hid_mouse_parameter.ux_slave_class_hid_instance_activate         = USBD_HID_Mouse_Activate;
-  hid_mouse_parameter.ux_slave_class_hid_instance_deactivate       = USBD_HID_Mouse_Deactivate;
-  hid_mouse_parameter.ux_device_class_hid_parameter_report_address = USBD_HID_ReportDesc(INTERFACE_HID_MOUSE);
-  hid_mouse_parameter.ux_device_class_hid_parameter_report_length  = USBD_HID_ReportDesc_length(INTERFACE_HID_MOUSE);
-  hid_mouse_parameter.ux_device_class_hid_parameter_report_id      = UX_FALSE;
-  hid_mouse_parameter.ux_device_class_hid_parameter_callback       = USBD_HID_Mouse_SetReport;
-  hid_mouse_parameter.ux_device_class_hid_parameter_get_callback   = USBD_HID_Mouse_GetReport;
-
-  /* USER CODE BEGIN HID_MOUSE_PARAMETER */
-
-  /* USER CODE END HID_MOUSE_PARAMETER */
-
-  /* Get hid mouse configuration number */
-  hid_mouse_configuration_number = USBD_Get_Configuration_Number(CLASS_TYPE_HID, INTERFACE_HID_MOUSE);
-
-  /* Find hid mouse interface number */
-  hid_mouse_interface_number = USBD_Get_Interface_Number(CLASS_TYPE_HID, INTERFACE_HID_MOUSE);
-
-  /* Initialize the device hid Mouse class */
-  if (ux_device_stack_class_register(_ux_system_slave_class_hid_name,
-                                     ux_device_class_hid_entry,
-                                     hid_mouse_configuration_number,
-                                     hid_mouse_interface_number,
-                                     &hid_mouse_parameter) != UX_SUCCESS)
-  {
-    /* USER CODE BEGIN USBX_DEVICE_HID_MOUSE_REGISTER_ERROR */
-    return UX_ERROR;
-    /* USER CODE END USBX_DEVICE_HID_MOUSE_REGISTER_ERROR */
-  }
-
   /* Initialize the cdc acm class parameters for the device */
   cdc_acm_parameter.ux_slave_class_cdc_acm_instance_activate   = USBD_CDC_ACM_Activate;
   cdc_acm_parameter.ux_slave_class_cdc_acm_instance_deactivate = USBD_CDC_ACM_Deactivate;
@@ -225,16 +188,6 @@ UINT MX_USBX_Device_Init(VOID *memory_ptr)
 
   /* USER CODE BEGIN MX_USBX_Device_Init1 */
 
-    if(tx_byte_allocate(byte_pool, (VOID **)&pointer, 1024, TX_NO_WAIT) != TX_SUCCESS)
-    {
-	      //HAL_GPIO_WritePin(LD3_RED_GPIO_Port, LD3_RED_Pin, GPIO_PIN_SET);
-	      return TX_POOL_ERROR;
-    }
-    if(tx_thread_create(&ux_hid_mouse_thread, "HID Mouse Thread", usbx_hid_mouse_thread_entry, 1, pointer, 1024, 20, 20, 1, TX_AUTO_START) != TX_SUCCESS)
-    {
-	      //HAL_GPIO_WritePin(LD3_RED_GPIO_Port, LD3_RED_Pin, GPIO_PIN_SET);
-	      return TX_THREAD_ERROR;
-    }
     if(tx_byte_allocate(byte_pool, (VOID **)&pointer, 1024, TX_NO_WAIT) != TX_SUCCESS)
     {
 	      //HAL_GPIO_WritePin(LD3_RED_GPIO_Port, LD3_RED_Pin, GPIO_PIN_SET);

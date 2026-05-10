@@ -60,10 +60,6 @@ volatile uint16_t uAngleEl;
 
 volatile uint16_t uAngleMech;
 
-volatile float angle = 0;
-
-volatile float fAngle[2000];
-
 volatile float fDutyD = 0;
 
 volatile float fDutyQ = 0;

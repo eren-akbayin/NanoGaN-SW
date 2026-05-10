@@ -49,12 +49,7 @@
 USBD_DevClassHandleTypeDef  USBD_Device_FS, USBD_Device_HS;
 
 uint8_t UserClassInstance[USBD_MAX_CLASS_INTERFACES] = {
-  CLASS_TYPE_HID,
   CLASS_TYPE_CDC_ACM,
-};
-
-uint8_t UserHIDInterface[] = {
-  INTERFACE_HID_MOUSE,
 };
 
 /* The generic device descriptor buffer that will be filled by builder
@@ -100,58 +95,6 @@ __ALIGN_END = {0};
 __ALIGN_BEGIN UCHAR USBD_language_id_framework[LANGUAGE_ID_MAX_LENGTH]
 __ALIGN_END = {0};
 
-#if USBD_HID_MOUSE_ACTIVATED == 1U
-
-#if defined ( __ICCARM__ ) /* IAR Compiler */
-#pragma data_alignment=4
-#endif /* defined ( __ICCARM__ ) */
-__ALIGN_BEGIN uint8_t USBD_HID_MOUSE_ReportDesc[]
-__ALIGN_END =
-{
-  /* USER CODE BEGIN USBD_HID_MOUSE_ReportDesc                 */
-  0x05, 0x01,        /* Usage Page (Generic Desktop Ctrls)     */
-  0x09, 0x02,        /* Usage (Mouse)                          */
-  0xA1, 0x01,        /* Collection (Application)               */
-  0x09, 0x01,        /*   Usage (Pointer)                      */
-  0xA1, 0x00,        /*   Collection (Physical)                */
-  0x05, 0x09,        /*     Usage Page (Button)                */
-  0x19, 0x01,        /*     Usage Minimum (0x01)               */
-  0x29, 0x03,        /*     Usage Maximum (0x03)               */
-  0x15, 0x00,        /*     Logical Minimum (0)                */
-  0x25, 0x01,        /*     Logical Maximum (1)                */
-  0x95, 0x03,        /*     Report Count (3)                   */
-  0x75, 0x01,        /*     Report Size (1)                    */
-  0x81, 0x02,        /*     Input (Data,Var,Abs)               */
-  0x95, 0x01,        /*     Report Count (1)                   */
-  0x75, 0x05,        /*     Report Size (5)                    */
-  0x81, 0x01,        /*     Input (Const,Array,Abs)            */
-  0x05, 0x01,        /*     Usage Page (Generic Desktop Ctrls) */
-  0x09, 0x30,        /*     Usage (X)                          */
-  0x09, 0x31,        /*     Usage (Y)                          */
-  0x09, 0x38,        /*     Usage (Wheel)                      */
-  0x15, 0x81,        /*     Logical Minimum (-127)             */
-  0x25, 0x7F,        /*     Logical Maximum (127)              */
-  0x75, 0x08,        /*     Report Size (8)                    */
-  0x95, 0x03,        /*     Report Count (3)                   */
-  0x81, 0x06,        /*     Input (Data,Var,Rel)               */
-  0xC0,              /*   End Collection                       */
-  0x09, 0x3C,        /*   Usage (Motion Wakeup)                */
-  0x05, 0xFF,        /*   Usage Page (Reserved 0xFF)           */
-  0x09, 0x01,        /*   Usage (0x01)                         */
-  0x15, 0x00,        /*   Logical Minimum (0)                  */
-  0x25, 0x01,        /*   Logical Maximum (1)                  */
-  0x75, 0x01,        /*   Report Size (1)                      */
-  0x95, 0x02,        /*   Report Count (2)                     */
-  0xB1, 0x22,        /*   Feature (Data,Var,Abs,NoWrp)         */
-  0x75, 0x06,        /*   Report Size (6)                      */
-  0x95, 0x01,        /*   Report Count (1)                     */
-  0xB1, 0x01,        /*   Feature (Const,Array,Abs,NoWrp)      */
-  /* USER CODE END USBD_HID_MOUSE_ReportDesc                   */
-  0xC0               /* End Collection                         */
-};
-
-#endif /* USBD_HID_MOUSE_ACTIVATED == 1U */
-
 /* USER CODE BEGIN PV1 */
 
 /* USER CODE END PV1 */
@@ -180,11 +123,6 @@ static void USBD_FrameWork_AddConfDesc(uint32_t Conf, uint32_t *pSze);
 
 static void USBD_FrameWork_AssignEp(USBD_DevClassHandleTypeDef *pdev, uint8_t Add,
                                     uint8_t Type, uint32_t Sze);
-
-#if USBD_HID_CLASS_ACTIVATED == 1U
-static void USBD_FrameWork_HID_Desc(USBD_DevClassHandleTypeDef *pdev,
-                                    uint32_t pConf, uint32_t *Sze);
-#endif /* USBD_HID_CLASS_ACTIVATED == 1U */
 
 #if USBD_CDC_ACM_CLASS_ACTIVATED == 1U
 static void USBD_FrameWork_CDCDesc(USBD_DevClassHandleTypeDef *pdev,
@@ -365,70 +303,6 @@ uint16_t USBD_Get_Configuration_Number(uint8_t class_type, uint8_t interface_typ
   return cfg_num;
 }
 
-#if USBD_HID_CLASS_ACTIVATED == 1U
-/**
-  * @brief  USBD_HID_ReportDesc
-  *         Return the device HID Report Descriptor
-  * @param  hid_type : HID Device type
-  * @retval Pointer to HID Report Descriptor buffer
-  */
-uint8_t *USBD_HID_ReportDesc(uint8_t hid_type)
-{
-  uint8_t *pHidReportDesc = NULL;
-
-  /* USER CODE BEGIN HidReportDesc0 */
-
-  /* USER CODE END HidReportDesc0 */
-
-  switch(hid_type)
-  {
-    case INTERFACE_HID_MOUSE:
-      pHidReportDesc = USBD_HID_MOUSE_ReportDesc;
-      break;
-
-    default:
-      break;
-  }
-
-  /* USER CODE BEGIN HidReportDesc1 */
-
-  /* USER CODE END HidReportDesc1 */
-
-  return pHidReportDesc;
-}
-
-/**
-  * @brief  USBD_HID_ReportDesc_length
-  *         Return the device HID Report Descriptor
-  * @param  hid_type : HID Device type
-  * @retval Size of HID Report Descriptor buffer
-  */
-uint16_t USBD_HID_ReportDesc_length(uint8_t hid_type)
-{
-  uint16_t ReportDesc_Size = 0;
-
-  /* USER CODE BEGIN ReportDesc_Size0 */
-
-  /* USER CODE END ReportDesc_Size0 */
-
-  switch(hid_type)
-  {
-    case INTERFACE_HID_MOUSE:
-      ReportDesc_Size = sizeof(USBD_HID_MOUSE_ReportDesc);
-      break;
-
-    default:
-      break;
-  }
-
-  /* USER CODE BEGIN ReportDesc_Size1 */
-
-  /* USER CODE END ReportDesc_Size1 */
-
-  return ReportDesc_Size;
-}
-#endif /* USBD_HID_CLASS_ACTIVATED == 1U */
-
 /**
   * @brief  USBD_Desc_GetString
   *         Convert ASCII string into Unicode one
@@ -594,8 +468,6 @@ uint8_t  USBD_FrameWork_AddClass(USBD_DevClassHandleTypeDef *pdev,
                                  uint8_t cfgidx, uint8_t Speed,
                                  uint8_t *pCmpstConfDesc)
 {
-  static uint8_t interface_idx = 0U;
-
   if ((pdev->classId < USBD_MAX_SUPPORTED_CLASS) &&
       (pdev->tclasslist[pdev->classId].Active == 0U))
   {
@@ -603,18 +475,6 @@ uint8_t  USBD_FrameWork_AddClass(USBD_DevClassHandleTypeDef *pdev,
     pdev->tclasslist[pdev->classId].ClassId = pdev->classId;
     pdev->tclasslist[pdev->classId].Active = 1U;
     pdev->tclasslist[pdev->classId].ClassType = class;
-
-    if (class == CLASS_TYPE_HID)
-    {
-      pdev->tclasslist[pdev->classId].InterfaceType = UserHIDInterface[interface_idx];
-
-      interface_idx++;
-
-      if (interface_idx == sizeof(UserHIDInterface))
-      {
-        interface_idx = 0U;
-      }
-    }
 
     /* Call configuration descriptor builder and endpoint configuration builder */
     if (USBD_FrameWork_AddToConfDesc(pdev, Speed, pCmpstConfDesc) != UX_SUCCESS)
@@ -657,53 +517,6 @@ uint8_t  USBD_FrameWork_AddToConfDesc(USBD_DevClassHandleTypeDef *pdev, uint8_t 
 
   switch (pdev->tclasslist[pdev->classId].ClassType)
   {
-
-#if USBD_HID_CLASS_ACTIVATED == 1U
-
-    case CLASS_TYPE_HID:
-
-      switch(pdev->tclasslist[pdev->classId].InterfaceType)
-      {
-
-#if USBD_HID_MOUSE_ACTIVATED == 1U
-
-        case INTERFACE_HID_MOUSE:
-
-          /* Find the first available interface slot and Assign number of interfaces */
-          interface = USBD_FrameWork_FindFreeIFNbr(pdev);
-          pdev->tclasslist[pdev->classId].NumIf = 1U;
-          pdev->tclasslist[pdev->classId].Ifs[0] = interface;
-
-          /* Assign endpoint numbers */
-          pdev->tclasslist[pdev->classId].NumEps = 1U; /* EP_IN */
-
-          /* Check the current speed to assign endpoint IN */
-          if (pdev->Speed == USBD_HIGH_SPEED)
-          {
-            /* Assign IN Endpoint */
-            USBD_FrameWork_AssignEp(pdev, USBD_HID_MOUSE_EPIN_ADDR,
-                                    USBD_EP_TYPE_INTR, USBD_HID_MOUSE_EPIN_HS_MPS);
-          }
-          else
-          {
-            /* Assign IN Endpoint */
-            USBD_FrameWork_AssignEp(pdev, USBD_HID_MOUSE_EPIN_ADDR,
-                                    USBD_EP_TYPE_INTR, USBD_HID_MOUSE_EPIN_FS_MPS);
-          }
-
-          /* Configure and Append the Descriptor */
-          USBD_FrameWork_HID_Desc(pdev, (uint32_t)pCmpstConfDesc, &pdev->CurrConfDescSz);
-
-          break;
-
-#endif /* USBD_HID_MOUSE_ACTIVATED == 1U */
-
-        default:
-          break;
-      }
-
-      break;
-#endif /* USBD_HID_CLASS_ACTIVATED == 1U */
 
 #if USBD_CDC_ACM_CLASS_ACTIVATED == 1
 
@@ -845,78 +658,6 @@ static void  USBD_FrameWork_AssignEp(USBD_DevClassHandleTypeDef *pdev,
   pdev->tclasslist[pdev->classId].Eps[idx].size = (uint16_t) Sze;
   pdev->tclasslist[pdev->classId].Eps[idx].is_used = 1U;
 }
-
-#if USBD_HID_CLASS_ACTIVATED == 1U
-/**
-  * @brief  USBD_FrameWork_HID_Desc
-  *         Configure and Append the HID Descriptor
-  * @param  pdev: device instance
-  * @param  pConf: Configuration descriptor pointer
-  * @param  Sze: pointer to the current configuration descriptor size
-  * @retval None
-  */
-static void  USBD_FrameWork_HID_Desc(USBD_DevClassHandleTypeDef *pdev,
-                                     uint32_t pConf, uint32_t *Sze)
-{
-  static USBD_IfDescTypedef       *pIfDesc;
-  static USBD_EpDescTypedef       *pEpDesc;
-  static USBD_HIDDescTypedef      *pHidDesc;
-
-  switch(pdev->tclasslist[pdev->classId].InterfaceType)
-  {
-
-#if USBD_HID_MOUSE_ACTIVATED == 1U
-    case INTERFACE_HID_MOUSE:
-
-      /* Append HID Interface descriptor to Configuration descriptor */
-      __USBD_FRAMEWORK_SET_IF(pdev->tclasslist[pdev->classId].Ifs[0], 0U,
-                              (uint8_t)(pdev->tclasslist[pdev->classId].NumEps),
-                              UX_DEVICE_CLASS_HID_CLASS,
-                              0x01U, INTERFACE_HID_MOUSE, 0U);
-
-      /* Append HID Functional descriptor to Configuration descriptor */
-      pHidDesc = ((USBD_HIDDescTypedef *)(pConf + *Sze));
-      pHidDesc->bLength = (uint8_t)sizeof(USBD_HIDDescTypedef);
-      pHidDesc->bDescriptorType = UX_DEVICE_CLASS_HID_DESCRIPTOR_HID;
-      pHidDesc->bcdHID = 0x0111U;
-      pHidDesc->bCountryCode = 0x00U;
-      pHidDesc->bNumDescriptors = 0x01U;
-      pHidDesc->bHIDDescriptorType = 0x22U;
-      pHidDesc->wDescriptorLength = USBD_HID_ReportDesc_length(INTERFACE_HID_MOUSE);
-      *Sze += (uint32_t)sizeof(USBD_HIDDescTypedef);
-
-      if (pdev->Speed == USBD_HIGH_SPEED)
-      {
-        /* Append Endpoint descriptor to Configuration descriptor */
-        __USBD_FRAMEWORK_SET_EP(pdev->tclasslist[pdev->classId].Eps[0].add,
-                                USBD_EP_TYPE_INTR,
-                                (uint16_t)pdev->tclasslist[pdev->classId].Eps[0].size,
-                                USBD_HID_MOUSE_EPIN_HS_BINTERVAL,
-                                USBD_HID_MOUSE_EPIN_FS_BINTERVAL);
-      }
-      else
-      {
-        /* Append Endpoint descriptor to Configuration descriptor */
-        __USBD_FRAMEWORK_SET_EP(pdev->tclasslist[pdev->classId].Eps[0].add,
-                                USBD_EP_TYPE_INTR,
-                                (uint16_t)pdev->tclasslist[pdev->classId].Eps[0].size,
-                                USBD_HID_MOUSE_EPIN_HS_BINTERVAL,
-                                USBD_HID_MOUSE_EPIN_FS_BINTERVAL);
-      }
-
-      break;
-#endif /* USBD_HID_MOUSE_ACTIVATED == 1U */
-
-    default:
-      break;
-  }
-
-  /* Update Config Descriptor and IAD descriptor */
-  ((USBD_ConfigDescTypedef *)pConf)->bNumInterfaces += 1U;
-  ((USBD_ConfigDescTypedef *)pConf)->wDescriptorLength = *Sze;
-
-}
-#endif /* USBD_HID_CLASS_ACTIVATED */
 
 #if USBD_CDC_ACM_CLASS_ACTIVATED == 1
 /**
