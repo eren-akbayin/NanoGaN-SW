@@ -52,15 +52,15 @@ volatile uint8_t uAngleSelection = 0;
 
 volatile uint32_t uNumberOfNops = 500;
 
-volatile uint16_t uAngle = 0;
-volatile uint16_t uIncrement = 0;
-volatile uint16_t uAngleManual = 0;
-
 volatile uint32_t uDTC[3];
 volatile uint32_t index_sine = 0;
 
 volatile float fCosAlpha;
 volatile float fSinAlpha;
+
+volatile float fCosAlphaHF;
+volatile float fSinAlphaHF;
+
 
 /* USER CODE END PV */
 
@@ -242,9 +242,6 @@ void TIM4_IRQHandler(void)
 		uAngleSelected = uAngleManual;
 		break;
 	case 1:
-		uAngleSelected = uAngle;
-		break;
-	case 2:
 		uAngleSelected = uAngleEl;
 		break;
 	default:
@@ -277,7 +274,7 @@ void TIM4_IRQHandler(void)
 
 	TIM1->CCR1 = uDTC[0];
 
-	uAngle = uAngle + uIncrement;
+	uAngleManual = uAngleManual + uIncrementManual;
 
 	/* USER CODE END TIM4_IRQn 0 */
 	HAL_TIM_IRQHandler(&htim4);

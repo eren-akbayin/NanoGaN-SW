@@ -37,7 +37,7 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
-#define MEASUREMENT_SIZE 6000
+#define MEASUREMENT_SIZE 8000
 
 typedef struct {
 	//Buffer length
@@ -79,13 +79,19 @@ extern shutdownType_t gShutdownType;
 
 
 extern volatile uint16_t uAngleEl;
-
 extern volatile uint16_t uAngleMech;
+extern volatile uint16_t uAngleHF;
+extern volatile uint16_t uIncrementHF;
+
+extern volatile uint16_t uAngleManual;
+extern volatile uint16_t uIncrementManual;
 
 extern volatile float angle;
 
 extern volatile float fDutyD;
 extern volatile float fDutyQ;
+
+extern volatile float fDutyHF;
 
 /* USER CODE END ET */
 

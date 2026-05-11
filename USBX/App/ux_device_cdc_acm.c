@@ -49,7 +49,8 @@
 /* USER CODE BEGIN PV */
 UX_SLAVE_CLASS_CDC_ACM *cdc_acm;
 uint8_t UserRxBuffer[16];
-const uint8_t UserTxMessage[] = "MY CDC CLASS IS RUNNING!\r\n";
+uint8_t flagTXReq = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -126,10 +127,10 @@ VOID usbx_cdc_read_thread_entry(ULONG thread_input)
 				switch (UserRxBuffer[i])
 				{
 				case '1':
-					HAL_GPIO_WritePin(LED_ACTIVE_GPIO_Port, LED_ACTIVE_Pin, GPIO_PIN_SET);
+					flagTXReq = 1;
 					break;
 				case '0':
-					HAL_GPIO_WritePin(LED_ACTIVE_GPIO_Port, LED_ACTIVE_Pin, GPIO_PIN_RESET);
+					flagTXReq = 0;
 					break;
 				}
 			}
@@ -150,11 +151,11 @@ VOID usbx_cdc_write_thread_entry(ULONG thread_input)
 	while (1)
 	{
 		/* Check if device is configured */
-		if ((device->ux_slave_device_state == UX_DEVICE_CONFIGURED) && (cdc_acm != UX_NULL))
+		if ((device->ux_slave_device_state == UX_DEVICE_CONFIGURED) && (cdc_acm != UX_NULL) && flagTXReq == 1)
 				{
-			//gInverterMeasurements.uPhaseSens
-			ux_device_class_cdc_acm_write(cdc_acm, (UCHAR*)gInverterMeasurements.uPhaseSens, sizeof(gInverterMeasurements.uPhaseSens),
+			ux_device_class_cdc_acm_write(cdc_acm, (UCHAR*)&gInverterMeasurements, sizeof(gInverterMeasurements),
 					&actual_length);
+			flagTXReq = 0;
 			/* Sleep for 1s */
 			//tx_thread_sleep(1);
 		}

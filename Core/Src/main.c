@@ -57,12 +57,17 @@ inverterMeasurementsTypeDef_t gInverterMeasurements = { 0 };
 shutdownType_t gShutdownType = OC;
 
 volatile uint16_t uAngleEl;
-
 volatile uint16_t uAngleMech;
+volatile uint16_t uAngleHF = 0;
+volatile uint16_t uIncrementHF = 0;
+
+volatile uint16_t uAngleManual = 0;
+volatile uint16_t uIncrementManual = 0;
+
 
 volatile float fDutyD = 0;
-
 volatile float fDutyQ = 0;
+volatile float fDutyHF = 0;
 
 /* USER CODE END PV */
 
