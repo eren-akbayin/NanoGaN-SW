@@ -42,7 +42,10 @@ typedef struct
 	measurementType_t measurementType;
 	thresholdTypeDef_t thresholds;
 	faultType_t faultType;
-	uint32_t dmaIndex;
+	uint32_t dmaIndexCurrent;
+	uint32_t dmaIndexPhaseVoltage;
+	uint32_t dmaIndexDCVoltage;
+	uint32_t dmaIndexAngle;
 	uint32_t faultIndex;
 } shutdownInfoTypeDef_t;
 
@@ -51,4 +54,4 @@ extern ADC_AnalogWDGConfTypeDef AnalogWDGConfig_VoltageDc;
 
 extern void calibrateSensorsSetShutdowns(float i_max, float u_min, float u_max);
 extern void gateDriveShutdown(void);
-extern void getShutdownInfo(measurementType_t measurementType, uint32_t dmaPointer);
+extern void getShutdownInfo(measurementType_t measurementType);

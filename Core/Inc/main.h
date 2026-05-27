@@ -44,7 +44,10 @@ typedef struct {
 	uint32_t bufferSize;
 
 	//Indexes
-	uint32_t dmaIndex;
+	uint32_t dmaIndexCurrent;
+	uint32_t dmaIndexPhaseVoltage;
+	uint32_t dmaIndexDCVoltage;
+	uint32_t dmaIndexAngle;
 	uint32_t faultIndex;
 
 	//Time Step
@@ -60,9 +63,14 @@ typedef struct {
 	volatile uint16_t uCurrOffsetW;
 
 	// Voltage & sensor measurements
-	uint32_t uDcLinkVoltage[3*MEASUREMENT_SIZE];
+	uint32_t uDcLinkVoltage[MEASUREMENT_SIZE];
 	uint32_t uPhaseSens[3*MEASUREMENT_SIZE];
 	uint32_t uCurrSens[3*MEASUREMENT_SIZE];
+
+	uint16_t uMechPosition[MEASUREMENT_SIZE / 2];
+
+	uint16_t uAngleoffset;
+	uint8_t uPolePair;
 
 } inverterMeasurementsTypeDef_t;
 
@@ -171,7 +179,7 @@ void Error_Handler(void);
 #define ARR_VAL 6874
 
 #define POLE_PAIR 4
-#define ANGLE_OFFSET 36428//35051
+#define ANGLE_OFFSET 13158//35051
 
 /* USER CODE END Private defines */
 
