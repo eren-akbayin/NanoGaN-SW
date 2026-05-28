@@ -21,7 +21,7 @@ import serial.tools.list_ports
 # ── CONFIG ────────────────────────────────────────────────────────────────────
 DEFAULT_PORT             = "COM5"
 DEFAULT_BAUD             = 115200
-DEFAULT_MEASUREMENT_SIZE = 8000
+DEFAULT_MEASUREMENT_SIZE = 4000
 TRIGGER_BYTE             = b"1"
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -40,33 +40,41 @@ def _expected_size(N: int) -> int:
     """
     Struct layout (little-endian, ARM default alignment):
 
-      Offset   Size   Field
-      0        4      bufferSize             uint32
-      4        4      dmaIndexCurrent        uint32
-      8        4      dmaIndexPhaseVoltage   uint32
-      12       4      dmaIndexDCVoltage      uint32
-      16       4      dmaIndexAngle          uint32
-      20       4      faultIndex             uint32
-      24       4      uTimeStepUs            uint32
-      28       4      fVoltPerBit            float32
-      32       4      fAmperePerbit          float32
-      36       2      uCurrOffsetU           uint16
-      38       2      uCurrOffsetV           uint16
-      40       2      uCurrOffsetW           uint16
-      42       2      <padding>              —
-      ─── arrays ─────────────────────────────────────────────────────────────
-      44       4*N    uDcLinkVoltage         uint32[N]
-      44+4N    4*3N   uPhaseSens             uint32[3*N]
-      44+16N   4*3N   uCurrSens              uint32[3*N]
-      44+28N   2*(N/2) uElectricalPosition   uint16[N/2]
-      44+29N   2      uAngleoffset           uint16
-      44+29N+2 1      uPolePair              uint8
-      44+29N+3 1      <struct tail padding>  —
+      Offset        Size        Field
+      0             4           bufferSize              uint32
+      4             4           dmaIndexCurrent         uint32
+      8             4           dmaIndexPhaseVoltage    uint32
+      12            4           dmaIndexDCVoltage       uint32
+      16            4           dmaIndexAngle           uint32
+      20            4           faultIndex              uint32
+      24            4           uTimeStepUs             uint32
+      28            4           fVoltPerBit             float32
+      32            4           fAmperePerbit           float32
+      36            2           uCurrOffsetU            uint16
+      38            2           uCurrOffsetV            uint16
+      40            2           uCurrOffsetW            uint16
+      42            2           <padding>               —
+      ─── arrays ──────────────────────────────────────────────────────────────
+      44            4*N         uDcLinkVoltage          uint32[N]
+      44+4N         4*3N        uPhaseSens              uint32[3*N]
+      44+16N        4*3N        uCurrSens               uint32[3*N]
+      44+28N        2*(N/2)     uMechPosition           uint16[N/2]
+      ─── tail ────────────────────────────────────────────────────────────────
+      44+29N        2           uAngleoffset            uint16
+      44+29N+2      1           uPolePair               uint8
+      44+29N+3      1           <padding>               —
+      44+29N+4      2           indexDTC                uint16
+      44+29N+6      2*(N/10)*3  uDTC                    uint16[N/10][3]
+      44+29N+6+6N/10  ?         <struct tail padding to 4-byte boundary>
     """
     # 7×uint32 + 2×float + 3×uint16 + 2-byte pad = 44 bytes header
     # arrays: 4N + 12N + 12N + N = 29N bytes
-    # tail: uint16 + uint8 + 1-byte pad = 4 bytes
-    return 44 + 29 * N + 4
+    # tail scalars: uint16 + uint8 + 1-byte pad + uint16 = 6 bytes
+    # uDTC: (N/10) * 3 * 2 bytes = 6N/10 bytes
+    raw_size = 44 + 29 * N + 6 + (N // 10) * 3 * 2
+    # Pad to 4-byte boundary (struct's largest member is uint32)
+    tail_pad = (4 - raw_size % 4) % 4
+    return raw_size + tail_pad
 
 
 def read_dump(port: str, baud: int, measurement_size: int) -> bytes:
@@ -119,13 +127,23 @@ def parse(raw: bytes, measurement_size: int) -> dict:
     fmt_arr = f"<{ARR}I"        # 3N  × uint32
     fmt_pos = f"<{N // 2}H"     # N/2 × uint16
 
-    dc_link_raw  = np.array(struct.unpack_from(fmt_n,   raw, base),                    dtype=np.uint32)   # (N,)
-    phase_raw    = np.array(struct.unpack_from(fmt_arr, raw, base + N*4),              dtype=np.uint32)
-    curr_raw     = np.array(struct.unpack_from(fmt_arr, raw, base + N*4 + ARR*4),      dtype=np.uint32)
-    elec_pos_raw = np.array(struct.unpack_from(fmt_pos, raw, base + N*4 + 2*ARR*4),   dtype=np.uint16)   # (N/2,)
+    dc_link_raw  = np.array(struct.unpack_from(fmt_n,   raw, base),                  dtype=np.uint32)  # (N,)
+    phase_raw    = np.array(struct.unpack_from(fmt_arr, raw, base + N*4),             dtype=np.uint32)
+    curr_raw     = np.array(struct.unpack_from(fmt_arr, raw, base + N*4 + ARR*4),    dtype=np.uint32)
+    mech_pos_raw = np.array(struct.unpack_from(fmt_pos, raw, base + N*4 + 2*ARR*4),  dtype=np.uint16)  # (N/2,)
 
-    tail_offset  = base + N*4 + 2*ARR*4 + (N // 2)*2
-    (angle_offset, pole_pair) = struct.unpack_from("<HB", raw, tail_offset)
+    # ── tail scalars ──────────────────────────────────────────────────────────
+    # Layout after mech_pos: uint16 uAngleoffset, uint8 uPolePair, 1-byte pad,
+    #                        uint16 indexDTC  →  "<HBxH" = 6 bytes
+    tail_offset = base + N*4 + 2*ARR*4 + (N // 2)*2
+    (angle_offset, pole_pair, index_dtc) = struct.unpack_from("<HBxH", raw, tail_offset)
+
+    # ── uDTC[N/10][3] ─────────────────────────────────────────────────────────
+    dtc_count   = N // 10
+    fmt_dtc     = f"<{dtc_count * 3}H"
+    dtc_offset  = tail_offset + 6
+    dtc_raw     = np.array(struct.unpack_from(fmt_dtc, raw, dtc_offset),
+                           dtype=np.uint16).reshape(dtc_count, 3)  # (N/10, 3)
 
     # reshape phase / current arrays: (3, N)
     phase_raw = phase_raw.reshape(N, 3).T
@@ -138,9 +156,9 @@ def parse(raw: bytes, measurement_size: int) -> dict:
     current_A = (curr_raw.astype(np.float32) - offsets) * amp_per_bit  # (3, N)
     current_A[0] = -current_A[0]   # invert phase U
 
-    # electrical position: convert raw uint16 count → degrees (0–360)
-    raw = (elec_pos_raw & 0x3FFF).astype(np.int32) * 4  # strip top 2 bits
-    elec_angle_deg = ((raw + angle_offset) % 65535) / 65535.0 * 360.0 * pole_pair % 360.0
+    # mechanical position: convert raw uint16 count → degrees (0–360)
+    mech_raw       = (mech_pos_raw & 0x3FFF).astype(np.int32) * 4  # strip top 2 bits
+    mech_angle_deg = ((mech_raw + angle_offset) % 65535) / 65535.0 * 360.0
 
     return dict(
         buffer_size              = buffer_size,
@@ -157,14 +175,16 @@ def parse(raw: bytes, measurement_size: int) -> dict:
         offset_w                 = offset_w,
         angle_offset             = angle_offset,
         pole_pair                = pole_pair,
+        index_dtc                = index_dtc,
         dc_link_raw              = dc_link_raw,
         phase_raw                = phase_raw,
         curr_raw                 = curr_raw,
-        elec_pos_raw             = elec_pos_raw,
+        mech_pos_raw             = mech_pos_raw,
+        dtc_raw                  = dtc_raw,
         voltage_V                = voltage_V,
         phase_V                  = phase_V,
         current_A                = current_A,
-        elec_angle_deg           = elec_angle_deg,
+        mech_angle_deg           = mech_angle_deg,
     )
 
 
@@ -182,17 +202,22 @@ def print_summary(d: dict):
     print(f"  CurrOffset U/V/W       : {d['offset_u']}  {d['offset_v']}  {d['offset_w']}")
     print(f"  uAngleoffset           : {d['angle_offset']}")
     print(f"  uPolePair              : {d['pole_pair']}")
+    print(f"  indexDTC               : {d['index_dtc']}")
+    print(f"  uDTC entries           : {d['dtc_raw'].shape[0]}  "
+          f"(first: {d['dtc_raw'][0] if len(d['dtc_raw']) else 'n/a'})")
 
 
 def plot(d: dict):
     N      = d["voltage_V"].shape[0]           # full-rate sample count
-    N_pos  = d["elec_angle_deg"].shape[0]      # N/2 samples
+    N_pos  = d["mech_angle_deg"].shape[0]      # N/2 samples
+    N_dtc  = d["dtc_raw"].shape[0]             # N/10 samples
     t      = np.arange(N)     * d["time_step_us"] * 1e-6
-    t_pos  = np.arange(N_pos) * d["time_step_us"] * 1e-6 * 2   # half rate
+    t_pos  = np.arange(N_pos) * d["time_step_us"] * 1e-6 * 2    # half rate
+    t_dtc  = np.arange(N_dtc) * d["time_step_us"] * 1e-6 * 10   # 1/10 rate
     phases = ["U", "V", "W"]
     colors = ["tab:blue", "tab:orange", "tab:green"]
 
-    fig, axes = plt.subplots(8, 1, figsize=(12, 16), sharex=True)
+    fig, axes = plt.subplots(9, 1, figsize=(12, 18), sharex=True)
     fig.suptitle("Inverter Measurements", fontsize=14)
 
     # DC Link Voltage
@@ -213,12 +238,21 @@ def plot(d: dict):
         axes[4 + i].set_ylabel(f"PhaseSens {phases[i]}")
         axes[4 + i].grid(True, alpha=0.4)
 
-    # Electrical Position (half rate)
-    axes[7].plot(t_pos, d["elec_angle_deg"], color="tab:purple", linewidth=0.8)
-    axes[7].set_ylabel("Elec. Angle (°)")
-    axes[7].set_xlabel("Time (s)")
+    # Mechanical Position (half rate)
+    axes[7].plot(t_pos, d["mech_angle_deg"], color="tab:purple", linewidth=0.8)
+    axes[7].set_ylabel("Mech. Angle (°)")
     axes[7].grid(True, alpha=0.4)
-    
+
+    # DTC channels (1/10 rate)
+    dtc_colors = ["tab:red", "tab:brown", "tab:gray"]
+    for i in range(3):
+        axes[8].plot(t_dtc, d["dtc_raw"][:, i], color=dtc_colors[i],
+                     linewidth=0.8, drawstyle="steps-post", label=f"DTC[{i}]")
+    axes[8].set_ylabel("DTC (raw)")
+    axes[8].set_xlabel("Time (s)")
+    axes[8].legend(loc="upper right", fontsize=7)
+    axes[8].grid(True, alpha=0.4)
+
     plt.tight_layout()
     plt.show()
 
@@ -228,7 +262,7 @@ def main():
     parser.add_argument("--port",  default=DEFAULT_PORT,             help="Serial port")
     parser.add_argument("--baud",  default=DEFAULT_BAUD,  type=int,  help="Baud rate")
     parser.add_argument("--size",  default=DEFAULT_MEASUREMENT_SIZE, type=int,
-                        help="MEASUREMENT_SIZE firmware define (must be even)")
+                        help="MEASUREMENT_SIZE firmware define (must be even and divisible by 10)")
     parser.add_argument("--list-ports", action="store_true",         help="List available ports and exit")
     parser.add_argument("--file",  default=None,                     help="Parse from binary file instead of serial")
     args = parser.parse_args()
@@ -238,7 +272,9 @@ def main():
         return
 
     if args.size % 2 != 0:
-        raise ValueError("MEASUREMENT_SIZE must be even (uElectricalPosition has N/2 elements).")
+        raise ValueError("MEASUREMENT_SIZE must be even (uMechPosition has N/2 elements).")
+    if args.size % 10 != 0:
+        raise ValueError("MEASUREMENT_SIZE must be divisible by 10 (uDTC has N/10 rows).")
 
     if args.file:
         print(f"Reading from file: {args.file}")

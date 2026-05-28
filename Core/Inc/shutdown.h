@@ -9,6 +9,13 @@
 
 #include "main.h"
 
+
+#define CURRENT_DMA_NDTR 	0x4002002c //DMA1 Stream 1 NDTR
+#define DC_VOLTAGE_DMA_NDTR 	0x4002005c //DMA1 Stream 3 NDTR
+#define PHASE_VOLTAGE_DMA_NDTR 	0x40020014 //DMA1 Stream 0 NDTR
+#define ANGLE_DMA_NDTR		0x4002042c //DMA2 Stream 1 NDTR
+
+
 typedef enum
 {
 	NONE = 0, VOLTAGE = 1, CURRENT = 2, TEMPERATURE = 3, ANGLE = 4, SPEED = 5

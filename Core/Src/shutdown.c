@@ -9,11 +9,6 @@
 #include "adc.h"
 #include "tim.h"
 
-#define CURRENT_DMA_NDTR 	0x4002002c //DMA1 Stream 1 NDTR
-#define DC_VOLTAGE_DMA_NDTR 	0x4002005c //DMA1 Stream 3 NDTR
-#define PHASE_VOLTAGE_DMA_NDTR 	0x40020014 //DMA1 Stream 0 NDTR
-#define ANGLE_DMA_NDTR		0x4002042c //DMA2 Stream 1 NDTR
-
 // Function prototypes (static)
 
 static int32_t calibrateOffset(uint32_t *pData, uint32_t len, uint8_t offset);
@@ -52,7 +47,7 @@ void calibrateSensorsSetShutdowns(float i_max, float u_min, float u_max)
 	HAL_ADCEx_Calibration_Start(&hadc2, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
 	HAL_ADCEx_Calibration_Start(&hadc3, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
 
-	HAL_ADC_Start_DMA(&hadc2, gInverterMeasurements.uCurrSens, 3 * MEASUREMENT_SIZE);
+	HAL_ADC_Start_DMA(&hadc2, gInverterMeasurements[indexMeasurement].uCurrSens, 3 * MEASUREMENT_SIZE);
 
 	HAL_TIM_Base_Start(&htim2);
 
@@ -62,13 +57,13 @@ void calibrateSensorsSetShutdowns(float i_max, float u_min, float u_max)
 
 	HAL_ADC_Stop_DMA(&hadc2);
 
-	gInverterMeasurements.uCurrOffsetU = calibrateOffset(gInverterMeasurements.uCurrSens, 3 * MEASUREMENT_SIZE, 0);
-	gInverterMeasurements.uCurrOffsetV = calibrateOffset(gInverterMeasurements.uCurrSens, 3 * MEASUREMENT_SIZE, 1);
-	gInverterMeasurements.uCurrOffsetW = calibrateOffset(gInverterMeasurements.uCurrSens, 3 * MEASUREMENT_SIZE, 2);
+	gInverterMeasurements[indexMeasurement].uCurrOffsetU = calibrateOffset(gInverterMeasurements[indexMeasurement].uCurrSens, 3 * MEASUREMENT_SIZE, 0);
+	gInverterMeasurements[indexMeasurement].uCurrOffsetV = calibrateOffset(gInverterMeasurements[indexMeasurement].uCurrSens, 3 * MEASUREMENT_SIZE, 1);
+	gInverterMeasurements[indexMeasurement].uCurrOffsetW = calibrateOffset(gInverterMeasurements[indexMeasurement].uCurrSens, 3 * MEASUREMENT_SIZE, 2);
 
-	uint32_t uAwdHigh = MIN3(gInverterMeasurements.uCurrOffsetU, gInverterMeasurements.uCurrOffsetV, gInverterMeasurements.uCurrOffsetW)
+	uint32_t uAwdHigh = MIN3(gInverterMeasurements[indexMeasurement].uCurrOffsetU, gInverterMeasurements[indexMeasurement].uCurrOffsetV, gInverterMeasurements[indexMeasurement].uCurrOffsetW)
 			+ (uint32_t)(BITS_PER_AMPERE * i_max);
-	uint32_t uAwdLow = MAX3(gInverterMeasurements.uCurrOffsetU, gInverterMeasurements.uCurrOffsetV, gInverterMeasurements.uCurrOffsetW)
+	uint32_t uAwdLow = MAX3(gInverterMeasurements[indexMeasurement].uCurrOffsetU, gInverterMeasurements[indexMeasurement].uCurrOffsetV, gInverterMeasurements[indexMeasurement].uCurrOffsetW)
 			- (uint32_t)(BITS_PER_AMPERE * i_max);
 
 	AnalogWDGConfig_Currents.WatchdogNumber = ADC_ANALOGWATCHDOG_1;
@@ -95,11 +90,11 @@ void calibrateSensorsSetShutdowns(float i_max, float u_min, float u_max)
 		Error_Handler();
 	}
 
-	HAL_ADC_Start_DMA(&hadc1, gInverterMeasurements.uPhaseSens, 3 * MEASUREMENT_SIZE);
+	HAL_ADC_Start_DMA(&hadc1, gInverterMeasurements[indexMeasurement].uPhaseSens, 3 * MEASUREMENT_SIZE);
 
-	HAL_ADC_Start_DMA(&hadc2, gInverterMeasurements.uCurrSens, 3 * MEASUREMENT_SIZE);
+	HAL_ADC_Start_DMA(&hadc2, gInverterMeasurements[indexMeasurement].uCurrSens, 3 * MEASUREMENT_SIZE);
 
-	HAL_ADC_Start_DMA(&hadc3, gInverterMeasurements.uDcLinkVoltage, MEASUREMENT_SIZE);
+	HAL_ADC_Start_DMA(&hadc3, gInverterMeasurements[indexMeasurement].uDcLinkVoltage, MEASUREMENT_SIZE);
 
 	HAL_TIM_Base_Start(&htim2);
 
@@ -137,12 +132,12 @@ void getShutdownInfo(measurementType_t measurementType)
 		shutdownInfo.thresholds.upperThresholdRaw = AnalogWDGConfig_VoltageDc.HighThreshold;
 		do
 		{
-			if (gInverterMeasurements.uDcLinkVoltage[i] < shutdownInfo.thresholds.lowerThresholdRaw)
+			if (gInverterMeasurements[indexMeasurement].uDcLinkVoltage[i] < shutdownInfo.thresholds.lowerThresholdRaw)
 					{
 				shutdownInfo.faultType = UNDER_VOLTAGE_FAULT;
 				break;
 			}
-			else if (gInverterMeasurements.uDcLinkVoltage[i] > shutdownInfo.thresholds.upperThresholdRaw)
+			else if (gInverterMeasurements[indexMeasurement].uDcLinkVoltage[i] > shutdownInfo.thresholds.upperThresholdRaw)
 					{
 				shutdownInfo.faultType = OVER_VOLTAGE_FAULT;
 				break;
@@ -157,7 +152,7 @@ void getShutdownInfo(measurementType_t measurementType)
 
 		shutdownInfo.faultIndex = i;
 
-		shutdownInfo.measuredRaw = gInverterMeasurements.uDcLinkVoltage[shutdownInfo.faultIndex];
+		shutdownInfo.measuredRaw = gInverterMeasurements[indexMeasurement].uDcLinkVoltage[shutdownInfo.faultIndex];
 		shutdownInfo.measured = (float)(shutdownInfo.measuredRaw) * VOLTS_PER_BIT;
 		shutdownInfo.thresholds.lowerThreshold = (float)(shutdownInfo.thresholds.lowerThresholdRaw) * VOLTS_PER_BIT;
 		shutdownInfo.thresholds.upperThreshold = (float)(shutdownInfo.thresholds.upperThresholdRaw) * VOLTS_PER_BIT;
@@ -170,8 +165,8 @@ void getShutdownInfo(measurementType_t measurementType)
 
 		do
 		{
-			if (gInverterMeasurements.uCurrSens[i] < shutdownInfo.thresholds.lowerThresholdRaw
-					|| gInverterMeasurements.uCurrSens[i] > shutdownInfo.thresholds.upperThresholdRaw)
+			if (gInverterMeasurements[indexMeasurement].uCurrSens[i] < shutdownInfo.thresholds.lowerThresholdRaw
+					|| gInverterMeasurements[indexMeasurement].uCurrSens[i] > shutdownInfo.thresholds.upperThresholdRaw)
 				break;
 
 			i++;
@@ -182,36 +177,36 @@ void getShutdownInfo(measurementType_t measurementType)
 		} while (i != shutdownInfo.dmaIndexCurrent);
 
 		shutdownInfo.faultIndex = i;
-		shutdownInfo.measuredRaw = gInverterMeasurements.uCurrSens[shutdownInfo.faultIndex];
+		shutdownInfo.measuredRaw = gInverterMeasurements[indexMeasurement].uCurrSens[shutdownInfo.faultIndex];
 
 		switch (shutdownInfo.faultIndex % 3)
 		{
 		case 0:
 			shutdownInfo.faultType = OVER_CURRENT_FAULT_PHASE_U;
-			shutdownInfo.measured = (float)((int32_t)gInverterMeasurements.uCurrSens[shutdownInfo.faultIndex]
-					- (int32_t)gInverterMeasurements.uCurrOffsetU) * -AMPERES_PER_BIT;
+			shutdownInfo.measured = (float)((int32_t)gInverterMeasurements[indexMeasurement].uCurrSens[shutdownInfo.faultIndex]
+					- (int32_t)gInverterMeasurements[indexMeasurement].uCurrOffsetU) * -AMPERES_PER_BIT;
 			shutdownInfo.thresholds.lowerThreshold = -(float)(AnalogWDGConfig_Currents.HighThreshold
-					- gInverterMeasurements.uCurrOffsetV) * AMPERES_PER_BIT;
-			shutdownInfo.thresholds.upperThreshold = (float)(gInverterMeasurements.uCurrOffsetV
+					- gInverterMeasurements[indexMeasurement].uCurrOffsetV) * AMPERES_PER_BIT;
+			shutdownInfo.thresholds.upperThreshold = (float)(gInverterMeasurements[indexMeasurement].uCurrOffsetV
 					- AnalogWDGConfig_Currents.LowThreshold) * AMPERES_PER_BIT;
 			break;
 		case 1:
 			shutdownInfo.faultType =
 					OVER_CURRENT_FAULT_PHASE_V;
-			shutdownInfo.measured = (float)((int32_t)gInverterMeasurements.uCurrSens[shutdownInfo.faultIndex]
-					- (int32_t)gInverterMeasurements.uCurrOffsetV) * AMPERES_PER_BIT;
-			shutdownInfo.thresholds.lowerThreshold = -(float)(gInverterMeasurements.uCurrOffsetV - AnalogWDGConfig_Currents.LowThreshold)
+			shutdownInfo.measured = (float)((int32_t)gInverterMeasurements[indexMeasurement].uCurrSens[shutdownInfo.faultIndex]
+					- (int32_t)gInverterMeasurements[indexMeasurement].uCurrOffsetV) * AMPERES_PER_BIT;
+			shutdownInfo.thresholds.lowerThreshold = -(float)(gInverterMeasurements[indexMeasurement].uCurrOffsetV - AnalogWDGConfig_Currents.LowThreshold)
 					* AMPERES_PER_BIT;
-			shutdownInfo.thresholds.upperThreshold = (float)(AnalogWDGConfig_Currents.HighThreshold - gInverterMeasurements.uCurrOffsetV)
+			shutdownInfo.thresholds.upperThreshold = (float)(AnalogWDGConfig_Currents.HighThreshold - gInverterMeasurements[indexMeasurement].uCurrOffsetV)
 					* AMPERES_PER_BIT;
 			break;
 		case 2:
 			shutdownInfo.faultType = OVER_CURRENT_FAULT_PHASE_W;
-			shutdownInfo.measured = (float)((int32_t)gInverterMeasurements.uCurrSens[shutdownInfo.faultIndex]
-					- (int32_t)gInverterMeasurements.uCurrOffsetW) * AMPERES_PER_BIT;
-			shutdownInfo.thresholds.lowerThreshold = -(float)(gInverterMeasurements.uCurrOffsetW - AnalogWDGConfig_Currents.LowThreshold)
+			shutdownInfo.measured = (float)((int32_t)gInverterMeasurements[indexMeasurement].uCurrSens[shutdownInfo.faultIndex]
+					- (int32_t)gInverterMeasurements[indexMeasurement].uCurrOffsetW) * AMPERES_PER_BIT;
+			shutdownInfo.thresholds.lowerThreshold = -(float)(gInverterMeasurements[indexMeasurement].uCurrOffsetW - AnalogWDGConfig_Currents.LowThreshold)
 					* AMPERES_PER_BIT;
-			shutdownInfo.thresholds.upperThreshold = (float)(AnalogWDGConfig_Currents.HighThreshold - gInverterMeasurements.uCurrOffsetW)
+			shutdownInfo.thresholds.upperThreshold = (float)(AnalogWDGConfig_Currents.HighThreshold - gInverterMeasurements[indexMeasurement].uCurrOffsetW)
 					* AMPERES_PER_BIT;
 			break;
 		default:
@@ -220,10 +215,10 @@ void getShutdownInfo(measurementType_t measurementType)
 
 	}
 
-	gInverterMeasurements.dmaIndexCurrent = shutdownInfo.dmaIndexCurrent;
-	gInverterMeasurements.dmaIndexDCVoltage = shutdownInfo.dmaIndexDCVoltage;
-	gInverterMeasurements.dmaIndexPhaseVoltage = shutdownInfo.dmaIndexPhaseVoltage;
-	gInverterMeasurements.dmaIndexAngle = shutdownInfo.dmaIndexAngle;
-	gInverterMeasurements.faultIndex = shutdownInfo.faultIndex;
+	gInverterMeasurements[indexMeasurement].dmaIndexCurrent = shutdownInfo.dmaIndexCurrent;
+	gInverterMeasurements[indexMeasurement].dmaIndexDCVoltage = shutdownInfo.dmaIndexDCVoltage;
+	gInverterMeasurements[indexMeasurement].dmaIndexPhaseVoltage = shutdownInfo.dmaIndexPhaseVoltage;
+	gInverterMeasurements[indexMeasurement].dmaIndexAngle = shutdownInfo.dmaIndexAngle;
+	gInverterMeasurements[indexMeasurement].faultIndex = shutdownInfo.faultIndex;
 }
 

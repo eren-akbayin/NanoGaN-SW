@@ -28,6 +28,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "main.h"
+#include "shutdown.h"
+#include "spi.h"
+#include "adc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -120,15 +123,38 @@ VOID usbx_cdc_read_thread_entry(ULONG thread_input)
 	{
 		/* Check if device is configured */
 		if ((device->ux_slave_device_state == UX_DEVICE_CONFIGURED) && (cdc_acm != UX_NULL))
-				{
+			{
 			ux_device_class_cdc_acm_read(cdc_acm, (UCHAR*)UserRxBuffer, 16, &actual_length);
 			for (uint8_t i = 0; i < actual_length; i++)
 					{
 				switch (UserRxBuffer[i])
 				{
 				case '1':
+
+					if(indexMeasurement==0)
+						indexMeasurement = 1;
+					else
+						indexMeasurement = 0;
+
+					gInverterMeasurements[indexMeasurement].dmaIndexCurrent = 3 * MEASUREMENT_SIZE - *(volatile uint32_t*) CURRENT_DMA_NDTR;
+
+					gInverterMeasurements[indexMeasurement].dmaIndexDCVoltage = 3 * MEASUREMENT_SIZE - *(volatile uint32_t*) PHASE_VOLTAGE_DMA_NDTR;
+
+					gInverterMeasurements[indexMeasurement].dmaIndexPhaseVoltage = MEASUREMENT_SIZE/2 - *(volatile uint32_t*) ANGLE_DMA_NDTR;
+
+					gInverterMeasurements[indexMeasurement].dmaIndexAngle = MEASUREMENT_SIZE - *(volatile uint32_t*) DC_VOLTAGE_DMA_NDTR;
+
+					HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&gInverterMeasurements[indexMeasurement].uMechPosition[0], MEASUREMENT_SIZE * 0.5);
+
+					HAL_ADC_Start_DMA(&hadc1, gInverterMeasurements[indexMeasurement].uPhaseSens, 3 * MEASUREMENT_SIZE);
+
+					HAL_ADC_Start_DMA(&hadc2, gInverterMeasurements[indexMeasurement].uCurrSens, 3 * MEASUREMENT_SIZE);
+
+					HAL_ADC_Start_DMA(&hadc3, gInverterMeasurements[indexMeasurement].uDcLinkVoltage, MEASUREMENT_SIZE);
+
 					flagTXReq = 1;
 					break;
+
 				case '0':
 					flagTXReq = 0;
 					break;

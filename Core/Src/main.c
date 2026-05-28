@@ -52,7 +52,8 @@
 
 /* USER CODE BEGIN PV */
 
-inverterMeasurementsTypeDef_t gInverterMeasurements = { 0 };
+inverterMeasurementsTypeDef_t gInverterMeasurements[2] = { 0 };
+uint8_t indexMeasurement = 0;
 
 shutdownType_t gShutdownType = OC;
 
@@ -114,10 +115,10 @@ int main(void)
   PeriphCommonClock_Config();
 
   /* USER CODE BEGIN SysInit */
-  gInverterMeasurements.bufferSize = MEASUREMENT_SIZE;
-  gInverterMeasurements.fVoltPerBit = VOLTS_PER_BIT;
-  gInverterMeasurements.fAmperePerbit = AMPERES_PER_BIT;
-  gInverterMeasurements.uTimeStepUs = 1; // 1 us per sample
+  gInverterMeasurements[indexMeasurement].bufferSize = MEASUREMENT_SIZE;
+  gInverterMeasurements[indexMeasurement].fVoltPerBit = VOLTS_PER_BIT;
+  gInverterMeasurements[indexMeasurement].fAmperePerbit = AMPERES_PER_BIT;
+  gInverterMeasurements[indexMeasurement].uTimeStepUs = 1; // 1 us per sample
 
   /* USER CODE END SysInit */
 
@@ -131,9 +132,9 @@ int main(void)
   MX_ADC3_Init();
   MX_ADC2_Init();
   MX_TIM2_Init();
-  MX_TIM4_Init();
   MX_CORDIC_Init();
   MX_TIM5_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
 

@@ -37,7 +37,7 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
-#define MEASUREMENT_SIZE 8000
+#define MEASUREMENT_SIZE 4000
 
 typedef struct {
 	//Buffer length
@@ -72,9 +72,13 @@ typedef struct {
 	uint16_t uAngleoffset;
 	uint8_t uPolePair;
 
+	uint16_t indexDTC;
+	uint16_t uDTC[MEASUREMENT_SIZE/10][3];
+
 } inverterMeasurementsTypeDef_t;
 
-extern inverterMeasurementsTypeDef_t gInverterMeasurements;
+extern inverterMeasurementsTypeDef_t gInverterMeasurements[2];
+extern uint8_t indexMeasurement;
 
 typedef enum
 {
@@ -176,7 +180,8 @@ void Error_Handler(void);
 
 #define DEGREES_PER_BIT 2*PI/65536.0f
 
-#define ARR_VAL 6874
+#define ARR_VAL 2749
+#define ARR_VAL_2 1374.0f
 
 #define POLE_PAIR 4
 #define ANGLE_OFFSET 13158//35051

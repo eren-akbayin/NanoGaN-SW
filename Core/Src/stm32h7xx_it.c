@@ -35,7 +35,9 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-
+#define PROFILER_START()    do { TIM5->CNT = 0; TIM5->CR1 |=  TIM_CR1_CEN; } while(0)
+#define PROFILER_STOP()     do {                TIM5->CR1 &= ~TIM_CR1_CEN; } while(0)
+#define PROFILER_READ()     (TIM5->CNT)
 
 /* USER CODE END PD */
 
@@ -51,8 +53,7 @@ volatile uint8_t uAngleSelection = 0;
 
 volatile uint32_t uNumberOfNops = 500;
 
-volatile uint32_t uDTC[3];
-volatile uint32_t index_sine = 0;
+volatile uint32_t elapsed = 0;
 
 volatile float fCosAlpha;
 volatile float fSinAlpha;
@@ -78,6 +79,7 @@ extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
 extern ADC_HandleTypeDef hadc3;
 extern SPI_HandleTypeDef hspi2;
+extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim4;
 extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 extern TIM_HandleTypeDef htim6;
@@ -227,11 +229,13 @@ void ADC_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles TIM4 global interrupt.
+  * @brief This function handles TIM1 update interrupt.
   */
-void TIM4_IRQHandler(void)
+void TIM1_UP_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM4_IRQn 0 */
+  /* USER CODE BEGIN TIM1_UP_IRQn 0 */
+
+	PROFILER_START();
 
 	uint16_t uAngleSelected;
 
@@ -263,17 +267,40 @@ void TIM4_IRQHandler(void)
 	float Vbeta = fDutyD * fSinAlpha + fDutyQ * fCosAlpha;
 
 	// Inverse Clarke → 3-phase duty cycles
-	uDTC[0] = (uint32_t)((Valpha) * 3437.0f + 3437.0f);
-	uDTC[1] = (uint32_t)((-Valpha * 0.5f + Vbeta * 0.866025f) * 3437.0f + 3437.0f);
-	uDTC[2] = (uint32_t)((-Valpha * 0.5f - Vbeta * 0.866025f) * 3437.0f + 3437.0f);
+	gInverterMeasurements[indexMeasurement].uDTC[gInverterMeasurements[indexMeasurement].indexDTC][0] = (uint32_t)((Valpha) * ARR_VAL_2 + ARR_VAL_2);
+	gInverterMeasurements[indexMeasurement].uDTC[gInverterMeasurements[indexMeasurement].indexDTC][1] = (uint32_t)((-Valpha * 0.5f + Vbeta * 0.866025f) * ARR_VAL_2 + ARR_VAL_2);
+	gInverterMeasurements[indexMeasurement].uDTC[gInverterMeasurements[indexMeasurement].indexDTC][2] = (uint32_t)((-Valpha * 0.5f - Vbeta * 0.866025f) * ARR_VAL_2 + ARR_VAL_2);
 
-	TIM1->CCR3 = uDTC[2];
+	TIM1->CCR3 = gInverterMeasurements[indexMeasurement].uDTC[gInverterMeasurements[indexMeasurement].indexDTC][2];
 
-	TIM1->CCR2 = uDTC[1];
+	TIM1->CCR2 = gInverterMeasurements[indexMeasurement].uDTC[gInverterMeasurements[indexMeasurement].indexDTC][1];
 
-	TIM1->CCR1 = uDTC[0];
+	TIM1->CCR1 = gInverterMeasurements[indexMeasurement].uDTC[gInverterMeasurements[indexMeasurement].indexDTC][0];
+
+	gInverterMeasurements[indexMeasurement].indexDTC ++;
+
+	if (gInverterMeasurements[indexMeasurement].indexDTC > MEASUREMENT_SIZE/10)
+		gInverterMeasurements[indexMeasurement].indexDTC = 0;
 
 	uAngleManual = uAngleManual + uIncrementManual;
+
+	PROFILER_STOP();
+
+	elapsed = PROFILER_READ();
+
+  /* USER CODE END TIM1_UP_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim1);
+  /* USER CODE BEGIN TIM1_UP_IRQn 1 */
+
+  /* USER CODE END TIM1_UP_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM4 global interrupt.
+  */
+void TIM4_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM4_IRQn 0 */
 
   /* USER CODE END TIM4_IRQn 0 */
   HAL_TIM_IRQHandler(&htim4);

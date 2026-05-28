@@ -135,22 +135,26 @@ void tx_nanogan_fsm_app(ULONG thread_input)
 {
   /* USER CODE BEGIN tx_nanogan_fsm_app */
 
-	HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&gInverterMeasurements.uMechPosition[0], MEASUREMENT_SIZE * 0.5);
+	HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&gInverterMeasurements[indexMeasurement].uMechPosition[0], MEASUREMENT_SIZE * 0.5);
 
-	gInverterMeasurements.uAngleoffset = ANGLE_OFFSET;
+	gInverterMeasurements[0].uAngleoffset = ANGLE_OFFSET;
 
-	gInverterMeasurements.uPolePair = POLE_PAIR;
+	gInverterMeasurements[1].uAngleoffset = ANGLE_OFFSET;
+
+	gInverterMeasurements[0].uPolePair = POLE_PAIR;
+
+	gInverterMeasurements[1].uPolePair = POLE_PAIR;
+
+	gInverterMeasurements[0].indexDTC = 0;
+
+	gInverterMeasurements[1].indexDTC = 0;
 
 	// Write high to the MOSI to always get compensated angle
 	HAL_GPIO_WritePin(SPI2_MOSI_GPIO_Port, SPI2_MOSI_Pin, GPIO_PIN_SET);
 
 	calibrateSensorsSetShutdowns(MAX_CURRENT, MIN_VOLTAGE, MAX_VOLTAGE);
 
-	HAL_TIM_Base_Start_IT(&htim4);
-
-	uAngleMech = ((gInverterMeasurements.uMechPosition[0] & 0x3FFF) << 2) + gInverterMeasurements.uAngleoffset;
-
-	uAngleEl = uAngleMech * gInverterMeasurements.uPolePair;
+	HAL_TIM_Base_Start_IT(&htim1);
 
 	// Wait for DMA buffers to get full
 
@@ -174,17 +178,17 @@ void tx_nanogan_fsm_app(ULONG thread_input)
 
 		uint32_t last_pos  = MEASUREMENT_SIZE/2 - *(volatile uint32_t*) ANGLE_DMA_NDTR;
 
-		fDcLinkVoltage = (float)(gInverterMeasurements.uDcLinkVoltage[0]) * VOLTS_PER_BIT;
+		fDcLinkVoltage = (float)(gInverterMeasurements[indexMeasurement].uDcLinkVoltage[0]) * VOLTS_PER_BIT;
 
-		uAngleMech = ((gInverterMeasurements.uMechPosition[last_pos] & 0x3FFF) << 2) + gInverterMeasurements.uAngleoffset;
+		uAngleMech = ((gInverterMeasurements[indexMeasurement].uMechPosition[last_pos] & 0x3FFF) << 2) + gInverterMeasurements[indexMeasurement].uAngleoffset;
 
-		uAngleEl = uAngleMech * gInverterMeasurements.uPolePair;
+		uAngleEl = uAngleMech * gInverterMeasurements[indexMeasurement].uPolePair;
 
-		fCurrent[0] = (float)((int32_t)gInverterMeasurements.uCurrSens[0] - (int32_t)gInverterMeasurements.uCurrOffsetU)
+		fCurrent[0] = (float)((int32_t)gInverterMeasurements[indexMeasurement].uCurrSens[0] - (int32_t)gInverterMeasurements[indexMeasurement].uCurrOffsetU)
 				* -AMPERES_PER_BIT;
-		fCurrent[1] = (float)((int32_t)gInverterMeasurements.uCurrSens[1] - (int32_t)gInverterMeasurements.uCurrOffsetV)
+		fCurrent[1] = (float)((int32_t)gInverterMeasurements[indexMeasurement].uCurrSens[1] - (int32_t)gInverterMeasurements[indexMeasurement].uCurrOffsetV)
 				* AMPERES_PER_BIT;
-		fCurrent[2] = (float)((int32_t)gInverterMeasurements.uCurrSens[2] - (int32_t)gInverterMeasurements.uCurrOffsetW)
+		fCurrent[2] = (float)((int32_t)gInverterMeasurements[indexMeasurement].uCurrSens[2] - (int32_t)gInverterMeasurements[indexMeasurement].uCurrOffsetW)
 				* AMPERES_PER_BIT;
 
 		tx_thread_sleep(1);
