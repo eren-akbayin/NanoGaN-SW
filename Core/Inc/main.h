@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
- ******************************************************************************
- * @file           : main.h
- * @brief          : Header for main.c file.
- *                   This file contains the common defines of the application.
- ******************************************************************************
- * @attention
- *
- * Copyright (c) 2026 STMicroelectronics.
- * All rights reserved.
- *
- * This software is licensed under terms that can be found in the LICENSE file
- * in the root directory of this software component.
- * If no LICENSE file comes with this software, it is provided AS-IS.
- *
- ******************************************************************************
- */
+  ******************************************************************************
+  * @file           : main.h
+  * @brief          : Header for main.c file.
+  *                   This file contains the common defines of the application.
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2026 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -31,79 +31,11 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "stdint.h"
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
-#define MEASUREMENT_SIZE 4000
-
-typedef struct {
-	//Buffer length
-	uint32_t bufferSize;
-
-	//Indexes
-	uint32_t dmaIndexCurrent;
-	uint32_t dmaIndexPhaseVoltage;
-	uint32_t dmaIndexDCVoltage;
-	uint32_t dmaIndexAngle;
-	uint32_t faultIndex;
-
-	//Time Step
-	uint32_t uTimeStepUs;
-
-	//Conversion constants
-	float fVoltPerBit;
-	float fAmperePerbit;
-
-	// Current offsets
-	volatile uint16_t uCurrOffsetU;
-	volatile uint16_t uCurrOffsetV;
-	volatile uint16_t uCurrOffsetW;
-
-	// Voltage & sensor measurements
-	uint32_t uDcLinkVoltage[MEASUREMENT_SIZE];
-	uint32_t uPhaseSens[3*MEASUREMENT_SIZE];
-	uint32_t uCurrSens[3*MEASUREMENT_SIZE];
-
-	uint16_t uMechPosition[MEASUREMENT_SIZE / 2];
-
-	uint16_t uAngleoffset;
-	uint8_t uPolePair;
-
-	uint16_t indexDTC;
-	uint16_t uDTC[MEASUREMENT_SIZE/10][3];
-
-} inverterMeasurementsTypeDef_t;
-
-extern inverterMeasurementsTypeDef_t gInverterMeasurements[2];
-extern uint8_t indexMeasurement;
-
-typedef enum
-{
-	OC = 0,		// Open Circuit
-	ASC_LOW = 1,	// Active Short Circuit Low Side
-	ASC_HIGH = 2	// Active Short Circuit High Side. Careful due to bootstrap it will persist for a limited time!!!
-}shutdownType_t;
-
-extern shutdownType_t gShutdownType;
-
-
-extern volatile uint16_t uAngleEl;
-extern volatile uint16_t uAngleMech;
-extern volatile uint16_t uAngleHF;
-extern volatile uint16_t uIncrementHF;
-
-extern volatile uint16_t uAngleManual;
-extern volatile uint16_t uIncrementManual;
-
-extern volatile float angle;
-
-extern volatile float fDutyD;
-extern volatile float fDutyQ;
-
-extern volatile float fDutyHF;
 
 /* USER CODE END ET */
 
@@ -114,12 +46,6 @@ extern volatile float fDutyHF;
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#define MAX3(a,b,c) MAX(MAX(a,b),c)
-
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define MIN3(a,b,c) MIN(MIN(a,b),c)
 
 /* USER CODE END EM */
 
@@ -169,22 +95,6 @@ void Error_Handler(void);
 #define LED_ACTIVE_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
-
-#define PI 3.14159265359f
-
-#define VOLTS_PER_BIT 12.0f/790.0f
-#define AMPERES_PER_BIT 80.0f/4096.0f
-#define BITS_PER_AMPERE 4096.0f/80.0f
-#define BITS_PER_VOLT 790.0f/12.0f
-#define DEGREE_PER_BIT 360.0f/16384.0f
-
-#define DEGREES_PER_BIT 2*PI/65536.0f
-
-#define ARR_VAL 2749
-#define ARR_VAL_2 1374.0f
-
-#define POLE_PAIR 4
-#define ANGLE_OFFSET 13158//35051
 
 /* USER CODE END Private defines */
 

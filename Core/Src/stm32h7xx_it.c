@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
- ******************************************************************************
- * @file    stm32h7xx_it.c
- * @brief   Interrupt Service Routines.
- ******************************************************************************
- * @attention
- *
- * Copyright (c) 2026 STMicroelectronics.
- * All rights reserved.
- *
- * This software is licensed under terms that can be found in the LICENSE file
- * in the root directory of this software component.
- * If no LICENSE file comes with this software, it is provided AS-IS.
- *
- ******************************************************************************
- */
+  ******************************************************************************
+  * @file    stm32h7xx_it.c
+  * @brief   Interrupt Service Routines.
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2026 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -22,9 +22,6 @@
 #include "stm32h7xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "shutdown.h"
-#include "tim.h"
-#include "cordic.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -35,10 +32,6 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define PROFILER_START()    do { TIM5->CNT = 0; TIM5->CR1 |=  TIM_CR1_CEN; } while(0)
-#define PROFILER_STOP()     do {                TIM5->CR1 &= ~TIM_CR1_CEN; } while(0)
-#define PROFILER_READ()     (TIM5->CNT)
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -48,19 +41,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
-volatile uint8_t uAngleSelection = 0;
-
-volatile uint32_t uNumberOfNops = 500;
-
-volatile uint32_t elapsed = 0;
-
-volatile float fCosAlpha;
-volatile float fSinAlpha;
-
-volatile float fCosAlphaHF;
-volatile float fSinAlphaHF;
-
 
 /* USER CODE END PV */
 
@@ -100,9 +80,9 @@ void NMI_Handler(void)
 
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
-	while (1)
-	{
-	}
+   while (1)
+  {
+  }
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
@@ -193,33 +173,6 @@ void ADC_IRQHandler(void)
 {
   /* USER CODE BEGIN ADC_IRQn 0 */
 
-	switch (gShutdownType)
-	{
-	case (OC):
-		TIM1->BDTR &= ~TIM_BDTR_MOE;
-		gateDriveShutdown();
-	case (ASC_LOW):
-		TIM1->CCR3 = 0;
-		TIM1->CCR2 = 0;
-		TIM1->CCR1 = 0;
-	case (ASC_HIGH):
-		TIM1->CCR3 = ARR_VAL;
-		TIM1->CCR2 = ARR_VAL;
-		TIM1->CCR1 = ARR_VAL;
-	}
-
-	//Keep the measurement going for little bit longer in case of shutdown creates a bigger problem
-
-	for (uint32_t i = 0; i < uNumberOfNops; i++)
-			{
-		__NOP();
-	}
-
-	HAL_TIM_Base_Stop(&htim2);
-
-	getShutdownInfo(CURRENT);
-
-	HAL_GPIO_WritePin(LED_FAULT_GPIO_Port, LED_FAULT_Pin, GPIO_PIN_SET);
   /* USER CODE END ADC_IRQn 0 */
   HAL_ADC_IRQHandler(&hadc1);
   HAL_ADC_IRQHandler(&hadc2);
@@ -234,59 +187,6 @@ void ADC_IRQHandler(void)
 void TIM1_UP_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM1_UP_IRQn 0 */
-
-	PROFILER_START();
-
-	uint16_t uAngleSelected;
-
-	switch (uAngleSelection)
-	{
-	case 0:
-		uAngleSelected = uAngleManual;
-		break;
-	case 1:
-		uAngleSelected = uAngleEl;
-		break;
-	default:
-		uAngleSelected = uAngleManual;
-		break;
-	}
-
-	uint32_t uWriteData = 0x7FFF0000 | (uint32_t)uAngleSelected;
-
-	uint32_t uRawData;
-
-	hcordic.Instance->WDATA = uWriteData;
-
-	uRawData = (int32_t)hcordic.Instance->RDATA;
-
-	fCosAlpha = (float)(int16_t)(uRawData) * (1.0f / 32767.0f);
-	fSinAlpha = (float)(int16_t)((uRawData >> 16)) * (1.0f / 32767.0f);
-
-	float Valpha = fDutyD * fCosAlpha - fDutyQ * fSinAlpha;
-	float Vbeta = fDutyD * fSinAlpha + fDutyQ * fCosAlpha;
-
-	// Inverse Clarke → 3-phase duty cycles
-	gInverterMeasurements[indexMeasurement].uDTC[gInverterMeasurements[indexMeasurement].indexDTC][0] = (uint32_t)((Valpha) * ARR_VAL_2 + ARR_VAL_2);
-	gInverterMeasurements[indexMeasurement].uDTC[gInverterMeasurements[indexMeasurement].indexDTC][1] = (uint32_t)((-Valpha * 0.5f + Vbeta * 0.866025f) * ARR_VAL_2 + ARR_VAL_2);
-	gInverterMeasurements[indexMeasurement].uDTC[gInverterMeasurements[indexMeasurement].indexDTC][2] = (uint32_t)((-Valpha * 0.5f - Vbeta * 0.866025f) * ARR_VAL_2 + ARR_VAL_2);
-
-	TIM1->CCR3 = gInverterMeasurements[indexMeasurement].uDTC[gInverterMeasurements[indexMeasurement].indexDTC][2];
-
-	TIM1->CCR2 = gInverterMeasurements[indexMeasurement].uDTC[gInverterMeasurements[indexMeasurement].indexDTC][1];
-
-	TIM1->CCR1 = gInverterMeasurements[indexMeasurement].uDTC[gInverterMeasurements[indexMeasurement].indexDTC][0];
-
-	gInverterMeasurements[indexMeasurement].indexDTC ++;
-
-	if (gInverterMeasurements[indexMeasurement].indexDTC > MEASUREMENT_SIZE/10)
-		gInverterMeasurements[indexMeasurement].indexDTC = 0;
-
-	uAngleManual = uAngleManual + uIncrementManual;
-
-	PROFILER_STOP();
-
-	elapsed = PROFILER_READ();
 
   /* USER CODE END TIM1_UP_IRQn 0 */
   HAL_TIM_IRQHandler(&htim1);
@@ -357,23 +257,6 @@ void OTG_HS_IRQHandler(void)
 void ADC3_IRQHandler(void)
 {
   /* USER CODE BEGIN ADC3_IRQn 0 */
-
-	TIM1->BDTR &= ~TIM_BDTR_MOE;
-
-	//Keep the measurement going for little bit longer in case of shutdown creates a bigger problem
-
-	for (uint32_t i = 0; i < uNumberOfNops; i++)
-			{
-		__NOP();
-	}
-
-	HAL_TIM_Base_Stop(&htim2);
-
-	gateDriveShutdown();
-
-	getShutdownInfo(VOLTAGE);
-
-	HAL_GPIO_WritePin(LED_FAULT_GPIO_Port, LED_FAULT_Pin, GPIO_PIN_SET);
 
   /* USER CODE END ADC3_IRQn 0 */
   HAL_ADC_IRQHandler(&hadc3);

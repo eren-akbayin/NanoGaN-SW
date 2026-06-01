@@ -17,8 +17,8 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include "app_threadx.h"
 #include "main.h"
+#include "cmsis_os.h"
 #include "adc.h"
 #include "cordic.h"
 #include "dma.h"
@@ -29,7 +29,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <string.h>
 
 /* USER CODE END Includes */
 
@@ -52,30 +51,13 @@
 
 /* USER CODE BEGIN PV */
 
-inverterMeasurementsTypeDef_t gInverterMeasurements[2] = { 0 };
-uint8_t indexMeasurement = 0;
-
-shutdownType_t gShutdownType = OC;
-
-volatile uint16_t uAngleEl;
-volatile uint16_t uAngleMech;
-volatile uint16_t uAngleHF = 0;
-volatile uint16_t uIncrementHF = 0;
-
-volatile uint16_t uAngleManual = 0;
-volatile uint16_t uIncrementManual = 0;
-
-
-volatile float fDutyD = 0;
-volatile float fDutyQ = 0;
-volatile float fDutyHF = 0;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void PeriphCommonClock_Config(void);
 static void MPU_Config(void);
+void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -115,10 +97,6 @@ int main(void)
   PeriphCommonClock_Config();
 
   /* USER CODE BEGIN SysInit */
-  gInverterMeasurements[indexMeasurement].bufferSize = MEASUREMENT_SIZE;
-  gInverterMeasurements[indexMeasurement].fVoltPerBit = VOLTS_PER_BIT;
-  gInverterMeasurements[indexMeasurement].fAmperePerbit = AMPERES_PER_BIT;
-  gInverterMeasurements[indexMeasurement].uTimeStepUs = 1; // 1 us per sample
 
   /* USER CODE END SysInit */
 
@@ -137,10 +115,14 @@ int main(void)
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
-
   /* USER CODE END 2 */
 
-  MX_ThreadX_Init();
+  /* Init scheduler */
+  osKernelInitialize();  /* Call init function for freertos objects (in cmsis_os2.c) */
+  MX_FREERTOS_Init();
+
+  /* Start scheduler */
+  osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
 
@@ -148,7 +130,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
