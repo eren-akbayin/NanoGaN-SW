@@ -1,2 +1,17 @@
 CompileFlags:
   CompilationDatabase: build/Debug
+
+---
+
+CompileFlags:
+  CompilationDatabase: >-
+    build/Debug/_deps/scrutiny-embedded-build/cwrapper/scrutiny-elf-symdump/src/scrutiny-elf-symdump-build
+If:
+  PathMatch: build/Debug/_deps/.*
+
+---
+
+CompileFlags:
+  CompilationDatabase: build/Debug
+If:
+  PathMatch: build/Debug/.*

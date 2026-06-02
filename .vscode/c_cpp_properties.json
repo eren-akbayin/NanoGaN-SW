@@ -1,7 +1,11 @@
 {
     "configurations": [
         {
-            "name": "STM32",
+            "name": "STM32_build/Debug/_deps",
+            "compileCommands": "${workspaceFolder}/build/Debug/_deps/scrutiny-embedded-build/cwrapper/scrutiny-elf-symdump/src/scrutiny-elf-symdump-build/compile_commands.json"
+        },
+        {
+            "name": "STM32_build/Debug",
             "compileCommands": "${workspaceFolder}/build/Debug/compile_commands.json"
         }
     ]

@@ -22,10 +22,11 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
+#include "cordic.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "core_tasks.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,7 +46,11 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-volatile uint32_t system_ticks = 0;
+uint16_t uAngle = 0;
+uint16_t increment = 1;
+
+volatile float fCosAlpha;
+volatile float fSinAlpha;
 
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
@@ -97,6 +102,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
+  initCoreTasks();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -118,7 +124,18 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    system_ticks++;
+    
+    uint32_t uWriteData = 0x7FFF0000 | (uint32_t)uAngle;
+
+    hcordic.Instance->WDATA = uWriteData;
+
+    uint32_t uRawData = (int32_t)hcordic.Instance->RDATA;
+
+    fCosAlpha = (float)(int16_t)(uRawData) * (1.0f / 32767.0f);
+    fSinAlpha = (float)(int16_t)((uRawData >> 16)) * (1.0f / 32767.0f);
+
+    uAngle += increment;
+
     osDelay(1);
   }
   /* USER CODE END StartDefaultTask */
