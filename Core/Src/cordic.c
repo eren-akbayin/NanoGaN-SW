@@ -35,6 +35,15 @@ void MX_CORDIC_Init(void)
   /* USER CODE END CORDIC_Init 0 */
 
   /* USER CODE BEGIN CORDIC_Init 1 */
+  CORDIC_ConfigTypeDef hcordicConfig;
+
+	hcordicConfig.Function = CORDIC_FUNCTION_COSINE; /* Computes cos + sin simultaneously */
+	hcordicConfig.Precision = CORDIC_PRECISION_6CYCLES; /* 6 iterations = ~20-bit accuracy */
+	hcordicConfig.Scale = CORDIC_SCALE_0; /* No scaling needed for sin/cos */
+	hcordicConfig.NbWrite = CORDIC_NBWRITE_1; /* 1 input: angle only */
+	hcordicConfig.NbRead = CORDIC_NBREAD_1; /* 2 outputs: cos (primary) + sin (secondary) */
+	hcordicConfig.InSize = CORDIC_INSIZE_16BITS; /* 32-bit input (we'll convert from 16-bit) */
+	hcordicConfig.OutSize = CORDIC_OUTSIZE_16BITS; /* 32-bit output for best precision */
 
   /* USER CODE END CORDIC_Init 1 */
   hcordic.Instance = CORDIC;
@@ -43,6 +52,11 @@ void MX_CORDIC_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN CORDIC_Init 2 */
+  
+  if (HAL_CORDIC_Configure(&hcordic, &hcordicConfig) != HAL_OK)
+			{
+		Error_Handler();
+	}
 
   /* USER CODE END CORDIC_Init 2 */
 

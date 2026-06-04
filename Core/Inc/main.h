@@ -47,6 +47,10 @@ extern "C" {
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
 
+#define PROFILER_START()    do { TIM5->CNT = 0; TIM5->CR1 |=  TIM_CR1_CEN; } while(0)
+#define PROFILER_STOP()     do {                TIM5->CR1 &= ~TIM_CR1_CEN; } while(0)
+#define PROFILER_READ()     (TIM5->CNT)
+
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
@@ -95,6 +99,9 @@ void Error_Handler(void);
 #define LED_ACTIVE_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
+
+#define SCRUTINY_CDC  0 //change according to tusb_descriptiors.c
+#define USER_CDC      1 //change according to tusb_descriptiors.c
 
 /* USER CODE END Private defines */
 

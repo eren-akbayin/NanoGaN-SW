@@ -23,15 +23,18 @@ uint8_t const *tud_descriptor_device_cb(void)
 }
 
 // Configuration + CDC interface descriptor
-#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN)
-#define EPNUM_CDC_NOTIF 0x81
-#define EPNUM_CDC_OUT 0x02
-#define EPNUM_CDC_IN 0x82
+#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + 2 * TUD_CDC_DESC_LEN)
+#define EPNUM_CDC_NOTIF  0x81
+#define EPNUM_CDC_OUT    0x02
+#define EPNUM_CDC_IN     0x82
+#define EPNUM_CDC2_NOTIF 0x83
+#define EPNUM_CDC2_OUT   0x04
+#define EPNUM_CDC2_IN    0x84
 
 uint8_t const desc_configuration[] = {
-    TUD_CONFIG_DESCRIPTOR(1, 2, 0, CONFIG_TOTAL_LEN, 0x00, 100),
-    TUD_CDC_DESCRIPTOR(0, 4, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN,
-                       64),
+    TUD_CONFIG_DESCRIPTOR(1, 4, 0, CONFIG_TOTAL_LEN, 0x00, 100),
+    TUD_CDC_DESCRIPTOR(0, 4, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64),
+    TUD_CDC_DESCRIPTOR(2, 5, EPNUM_CDC2_NOTIF, 8, EPNUM_CDC2_OUT, EPNUM_CDC2_IN, 64)
 };
 
 uint8_t const *tud_descriptor_configuration_cb(uint8_t index)
@@ -45,7 +48,8 @@ char const *string_desc_arr[] = {
     "ErA",                      // 1: Manufacturer
     "NanoGaN",                  // 2: Product
     "01",                       // 3: Serial
-    "TinyUSB CDC",              // 4: CDC Interface
+    "Scrutiny CDC",             // 4: CDC 0 (Scrutiny)
+    "User CDC",                 // 5: CDC 1 (general use)
 };
 
 uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid)

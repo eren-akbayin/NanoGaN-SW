@@ -18,7 +18,7 @@
 #define CFG_TUD_ENDPOINT0_SIZE 64
 
 // ── CDC ───────────────────────────────────────────────────────────────────
-#define CFG_TUD_CDC 1
+#define CFG_TUD_CDC 2
 #define CFG_TUD_CDC_RX_BUFSIZE 512
 #define CFG_TUD_CDC_TX_BUFSIZE 512
 #define CFG_TUD_CDC_EP_BUFSIZE 64 // must match descriptor (FS max = 64)

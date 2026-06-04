@@ -27,6 +27,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "core_tasks.h"
+#include "tusb.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,7 +48,10 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 uint16_t uAngle = 0;
-uint16_t increment = 1;
+uint16_t uIncrement = 100;
+
+uint32_t uWriteData = 0;
+uint32_t uRawData = 0;
 
 volatile float fCosAlpha;
 volatile float fSinAlpha;
@@ -121,20 +125,21 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
+
   /* Infinite loop */
   for(;;)
   {
     
-    uint32_t uWriteData = 0x7FFF0000 | (uint32_t)uAngle;
+    uWriteData = 0x7FFF0000 | (uint32_t)uAngle;
 
     hcordic.Instance->WDATA = uWriteData;
 
-    uint32_t uRawData = (int32_t)hcordic.Instance->RDATA;
+    uRawData = (int32_t)hcordic.Instance->RDATA;
 
     fCosAlpha = (float)(int16_t)(uRawData) * (1.0f / 32767.0f);
     fSinAlpha = (float)(int16_t)((uRawData >> 16)) * (1.0f / 32767.0f);
 
-    uAngle += increment;
+    uAngle += uIncrement;
 
     osDelay(1);
   }

@@ -2,7 +2,6 @@
 #include "cmsis_os.h"
 #include "main.h"
 #include "scrutiny_cwrapper.h"
-#include "tusb.h"
 
 /* ── Memory for C++ objects (sized at runtime by the library) ─────────────
    We over-allocate with a generous static buffer. The construct() calls
@@ -90,23 +89,23 @@ void scrutiny_receive_data(const uint8_t *data, uint16_t len)
     }
 }
 
-/* ── Process + TX flush — call this from your CDC task loop ───────────── */
-void scrutiny_process_and_send(void)
+/* ── Process + collect output data ───────────────────────────────────── */
+uint16_t scrutiny_process_and_collect(uint8_t *out_buf, uint16_t out_buf_size)
 {
     if (s_handler == NULL) {
-        return;
+        return 0;
     }
-
     scrutiny_c_timediff_t timestep = get_timestep_100ns();
     scrutiny_c_main_handler_process(s_handler, timestep);
 
-    uint8_t out[64];
+    uint16_t total = 0;
     uint16_t n;
-    while ((n = scrutiny_c_main_handler_pop_data(s_handler, out, sizeof(out))) >0) 
+    while ((n = scrutiny_c_main_handler_pop_data(s_handler, out_buf + total, out_buf_size - total)) > 0)
     {
-        tud_cdc_write(out, n);
+        total += n;
+        if (total >= out_buf_size) break;
     }
-    tud_cdc_write_flush();
+    return total;
 }
 
 void scrutiny_loop_process(uint32_t timestep_100ns)
