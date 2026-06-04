@@ -22,12 +22,11 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
-#include "cordic.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "core_tasks.h"
-#include "tusb.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,14 +46,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-uint16_t uAngle = 0;
-uint16_t uIncrement = 100;
-
-uint32_t uWriteData = 0;
-uint32_t uRawData = 0;
-
-volatile float fCosAlpha;
-volatile float fSinAlpha;
 
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
@@ -130,17 +121,6 @@ void StartDefaultTask(void *argument)
   for(;;)
   {
     
-    uWriteData = 0x7FFF0000 | (uint32_t)uAngle;
-
-    hcordic.Instance->WDATA = uWriteData;
-
-    uRawData = (int32_t)hcordic.Instance->RDATA;
-
-    fCosAlpha = (float)(int16_t)(uRawData) * (1.0f / 32767.0f);
-    fSinAlpha = (float)(int16_t)((uRawData >> 16)) * (1.0f / 32767.0f);
-
-    uAngle += uIncrement;
-
     osDelay(1);
   }
   /* USER CODE END StartDefaultTask */

@@ -23,6 +23,10 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "tusb.h"
+#include "measurement.h"
+#include "core_tasks.h"
+#include "cordic.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,6 +46,14 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
+uint16_t uAngle = 0;
+uint16_t uIncrement = 100;
+
+uint32_t uWriteData = 0;
+uint32_t uRawData = 0;
+
+volatile float fCosAlpha;
+volatile float fSinAlpha;
 
 /* USER CODE END PV */
 
@@ -173,7 +185,8 @@ void DebugMon_Handler(void)
 void ADC_IRQHandler(void)
 {
   /* USER CODE BEGIN ADC_IRQn 0 */
-
+  shutdownGateDrive();
+  inverter_fsm_post_fault(CURRENT);
   /* USER CODE END ADC_IRQn 0 */
   HAL_ADC_IRQHandler(&hadc1);
   HAL_ADC_IRQHandler(&hadc2);
@@ -188,6 +201,17 @@ void ADC_IRQHandler(void)
 void TIM1_UP_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM1_UP_IRQn 0 */
+
+  uWriteData = 0x7FFF0000 | (uint32_t)uAngle;
+
+  hcordic.Instance->WDATA = uWriteData;
+
+  uRawData = hcordic.Instance->RDATA;
+
+  fCosAlpha = (float)(int16_t)(uRawData) * (1.0f / 32767.0f);
+  fSinAlpha = (float)(int16_t)((uRawData >> 16)) * (1.0f / 32767.0f);
+
+  uAngle += uIncrement;
 
   /* USER CODE END TIM1_UP_IRQn 0 */
   HAL_TIM_IRQHandler(&htim1);
@@ -262,7 +286,8 @@ void OTG_HS_IRQHandler(void)
 void ADC3_IRQHandler(void)
 {
   /* USER CODE BEGIN ADC3_IRQn 0 */
-
+  shutdownGateDrive();
+  inverter_fsm_post_fault(VOLTAGE);
   /* USER CODE END ADC3_IRQn 0 */
   HAL_ADC_IRQHandler(&hadc3);
   /* USER CODE BEGIN ADC3_IRQn 1 */

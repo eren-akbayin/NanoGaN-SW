@@ -47,6 +47,8 @@ extern "C" {
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
 
+#define ARR_VAL (TIM1->ARR) // Default PWM ARR value.
+
 #define PROFILER_START()    do { TIM5->CNT = 0; TIM5->CR1 |=  TIM_CR1_CEN; } while(0)
 #define PROFILER_STOP()     do {                TIM5->CR1 &= ~TIM_CR1_CEN; } while(0)
 #define PROFILER_READ()     (TIM5->CNT)

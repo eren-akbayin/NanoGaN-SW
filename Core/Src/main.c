@@ -32,6 +32,8 @@
 /* USER CODE BEGIN Includes */
 
 #include "tusb.h"
+#include "measurement.h"
+#include <stdint.h>
 
 /* USER CODE END Includes */
 
@@ -120,7 +122,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   tusb_init();
-
+  
   /* USER CODE END 2 */
 
   /* Init scheduler */

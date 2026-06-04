@@ -1,0 +1,24 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Flash (ST-Link SWD)",
+            "type": "shell",
+            "command": "STM32_Programmer_CLI",
+            "args": [
+                "-c", "port=SWD",
+                "-w", "${workspaceFolder}/build/Debug/nanogan-sw_tagged.elf",
+                "-v",
+                "-rst"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "⚡ Build + Flash",
+            "dependsOn": ["CMake Build Debug", "Flash (ST-Link SWD)"],
+            "dependsOrder": "sequence",
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}

@@ -152,6 +152,15 @@ SECTIONS
   } >FLASH
 
   /* used by the startup to initialize data */
+  /* DMA-accessible data in AXI SRAM (RAM_D1, 0x24000000) — DTCM is CPU-only */
+  .dma_data (NOLOAD) :
+  {
+    . = ALIGN(4);
+    *(.dma_data)
+    *(.dma_data*)
+    . = ALIGN(4);
+  } >RAM_D1
+
   _sidata = LOADADDR(.data);
 
   /* Initialized data sections goes into RAM, load LMA copy after code */
