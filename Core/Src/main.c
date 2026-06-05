@@ -56,6 +56,9 @@
 
 /* USER CODE BEGIN PV */
 
+uint16_t uAngleMech = 0;
+uint16_t uAngleEl = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -85,6 +88,11 @@ int main(void)
 
   /* MPU Configuration--------------------------------------------------------*/
   MPU_Config();
+
+  /* Enable the CPU Cache */
+
+  /* Enable I-Cache---------------------------------------------------------*/
+  SCB_EnableICache();
 
   /* MCU Configuration--------------------------------------------------------*/
 

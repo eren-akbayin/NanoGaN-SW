@@ -161,6 +161,15 @@ SECTIONS
     . = ALIGN(4);
   } >RAM_D1
 
+  /* D2 SRAM (0x30000000, 32K) — accessible by DMA1/DMA2/MDMA */
+  .d2_bss (NOLOAD) :
+  {
+    . = ALIGN(4);
+    *(.d2_bss)
+    *(.d2_bss*)
+    . = ALIGN(4);
+  } >RAM_D2
+
   _sidata = LOADADDR(.data);
 
   /* Initialized data sections goes into RAM, load LMA copy after code */

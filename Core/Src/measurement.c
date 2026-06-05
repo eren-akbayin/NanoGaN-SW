@@ -54,8 +54,6 @@ void stopMeasurements(void)
 
 	HAL_TIM_Base_Stop(&htim2);
 
-	HAL_SPI_DMAStop(&hspi2);
-
 	HAL_ADC_Stop_DMA(&hadc1);
 	HAL_ADC_Stop_DMA(&hadc2);
 	HAL_ADC_Stop_DMA(&hadc3);
@@ -70,8 +68,6 @@ void startMeasurements(void)
 	HAL_ADC_Start_DMA(&hadc3, gInverterMeasurements.uDcLinkVoltage, MEASUREMENT_SIZE);
 
 	HAL_TIM_Base_Start(&htim2);
-    
-    HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&gInverterMeasurements.uMechPosition[0], MEASUREMENT_SIZE >> 1);
 
 }
 
@@ -79,8 +75,6 @@ void calibrateSensorsSetShutdowns(float i_max, float u_min, float u_max)
 {
 
 	// Write high to the MOSI to always get compensated angle
-
-	HAL_GPIO_WritePin(SPI2_MOSI_GPIO_Port, SPI2_MOSI_Pin, GPIO_PIN_SET);
 
 	stopMeasurements();
 

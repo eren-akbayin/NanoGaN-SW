@@ -43,6 +43,7 @@ include(FetchContent)
 
 set(SCRUTINY_ENABLE_DATALOGGING 1)
 set(SCRUTINY_SUPPORT_64BITS 0)
+set(SCRUTINY_DATALOGGING_BUFFER_32BITS ON)
 
 FetchContent_Declare(
   scrutiny-embedded

@@ -26,6 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "core_tasks.h"
+#include "spi.h"
 
 /* USER CODE END Includes */
 
@@ -37,6 +38,9 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
+#define POLE_PAIR 4
+#define ANGLE_OFFSET 13158
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -46,6 +50,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+
+volatile uint16_t uAngleRaw __attribute__((section(".dma_data")));
 
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
@@ -117,10 +123,23 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
 
+  osDelay(1000);
+
+  HAL_GPIO_WritePin(SPI2_MOSI_GPIO_Port, SPI2_MOSI_Pin, GPIO_PIN_SET);
+
+  HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&uAngleRaw,1);
+
+  gInverterMeasurements.uAngleoffset = ANGLE_OFFSET;
+
+	gInverterMeasurements.uPolePair = POLE_PAIR;
+
   /* Infinite loop */
   for(;;)
   {
-    
+    uAngleMech = ((uAngleRaw & 0x3FFF) << 2) + gInverterMeasurements.uAngleoffset;
+
+		uAngleEl = uAngleMech * gInverterMeasurements.uPolePair;
+
     osDelay(1);
   }
   /* USER CODE END StartDefaultTask */

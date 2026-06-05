@@ -29,8 +29,11 @@ static uint8_t tx_buffer[TX_BUF_SIZE];
 
 /* ── Datalogging buffer ────────────────────────────────────────────────── */
 #if SCRUTINY_ENABLE_DATALOGGING == 1
-#define DATALOG_BUF_SIZE 2048U
-static uint8_t datalog_buffer[DATALOG_BUF_SIZE];
+/* Placed in RAM_D2 (32KB, 0x30000000) — DMA1/DMA2/MDMA accessible.
+   32KB → 2048 samples/signal for 4 × float32 at 100kHz (~20ms).
+   Requires SCRUTINY_DATALOGGING_BUFFER_32BITS=ON in CMake. */
+#define DATALOG_BUF_SIZE (32U * 1024U)
+static uint8_t datalog_buffer[DATALOG_BUF_SIZE] __attribute__((section(".d2_bss")));
 #endif
 
 /* ── Timestamp (FreeRTOS tick @ 1kHz → ×10 = 100µs = 1000 × 100ns) ─────  */
@@ -70,7 +73,7 @@ void scrutiny_integration_init(void)
       timestep expressed in 100ns units: 10ms = 100,000 × 100ns */
     s_loop_handler = scrutiny_c_loop_handler_fixed_freq_construct(
         loop_handler_mem, LOOP_HANDLER_BUF_SIZE,
-        100000U, /* 10ms in 100ns units → 100Hz */
+        100U, /* 10us in 100ns units → 100kHz */
         "main_loop");
 
     s_loop_array[0] = (scrutiny_c_loop_handler_t *)s_loop_handler;

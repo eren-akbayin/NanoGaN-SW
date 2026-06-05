@@ -49,14 +49,21 @@
 /* USER CODE BEGIN PV */
 uint32_t uProfileLength = 0;
 
-uint16_t uAngle = 0;
-uint16_t uIncrement = 100;
+uint16_t uAngleManual = 0;
+uint16_t uIncrementManual = 100;
+
+float fCurrent[3] = {0.0f, 0.0f, 0.0f};
 
 uint32_t uWriteData = 0;
 uint32_t uRawData = 0;
 
 volatile float fCosAlpha;
 volatile float fSinAlpha;
+
+volatile float fDutyD = 0;
+volatile float fDutyQ = 0;
+
+uint32_t uDTC[3]; 
 
 /* USER CODE END PV */
 
@@ -76,7 +83,6 @@ extern ADC_HandleTypeDef hadc2;
 extern ADC_HandleTypeDef hadc3;
 extern SPI_HandleTypeDef hspi2;
 extern TIM_HandleTypeDef htim1;
-extern TIM_HandleTypeDef htim4;
 extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 extern TIM_HandleTypeDef htim6;
 
@@ -93,7 +99,7 @@ extern TIM_HandleTypeDef htim6;
 void NMI_Handler(void)
 {
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
-
+  shutdownGateDrive();
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
    while (1)
@@ -108,7 +114,7 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-
+  shutdownGateDrive();
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
@@ -123,7 +129,7 @@ void HardFault_Handler(void)
 void MemManage_Handler(void)
 {
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
-
+  shutdownGateDrive();
   /* USER CODE END MemoryManagement_IRQn 0 */
   while (1)
   {
@@ -138,7 +144,7 @@ void MemManage_Handler(void)
 void BusFault_Handler(void)
 {
   /* USER CODE BEGIN BusFault_IRQn 0 */
-
+  shutdownGateDrive();
   /* USER CODE END BusFault_IRQn 0 */
   while (1)
   {
@@ -153,7 +159,7 @@ void BusFault_Handler(void)
 void UsageFault_Handler(void)
 {
   /* USER CODE BEGIN UsageFault_IRQn 0 */
-
+  shutdownGateDrive();
   /* USER CODE END UsageFault_IRQn 0 */
   while (1)
   {
@@ -207,18 +213,45 @@ void TIM1_UP_IRQHandler(void)
 
   PROFILER_START();
 
-  uWriteData = 0x7FFF0000 | (uint32_t)uAngle;
+  uint16_t uAngleSelected;
 
-  hcordic.Instance->WDATA = uWriteData;
+	uAngleSelected = uAngleManual;
 
-  uRawData = hcordic.Instance->RDATA;
+	uint32_t uWriteData = 0x7FFF0000 | (uint32_t)uAngleSelected;
 
-  fCosAlpha = (float)(int16_t)(uRawData) * (1.0f / 32767.0f);
-  fSinAlpha = (float)(int16_t)((uRawData >> 16)) * (1.0f / 32767.0f);
+	uint32_t uRawData;
 
-  uAngle += uIncrement;
+	hcordic.Instance->WDATA = uWriteData;
 
-  scrutiny_loop_process(100U);
+	uRawData = hcordic.Instance->RDATA;
+
+	fCosAlpha = (float)(int16_t)(uRawData) * (1.0f / 32767.0f);
+	fSinAlpha = (float)(int16_t)((uRawData >> 16)) * (1.0f / 32767.0f);
+
+	float Valpha = fDutyD * fCosAlpha - fDutyQ * fSinAlpha;
+	float Vbeta = fDutyD * fSinAlpha + fDutyQ * fCosAlpha;
+
+	// Inverse Clarke → 3-phase duty cycles
+	uDTC[0] = (uint32_t)((Valpha) * (ARR_VAL>>1) + (ARR_VAL>>1));
+	uDTC[1]  = (uint32_t)((-Valpha * 0.5f + Vbeta * 0.866025f) * (ARR_VAL>>1) + (ARR_VAL>>1));
+	uDTC[2]  = (uint32_t)((-Valpha * 0.5f - Vbeta * 0.866025f) * (ARR_VAL>>1) + (ARR_VAL>>1));
+
+	TIM1->CCR3 = uDTC[0];
+
+	TIM1->CCR2 = uDTC[1];
+
+	TIM1->CCR1 = uDTC[2];
+
+  fCurrent[0] = (float)((int32_t)gInverterMeasurements.uCurrSens[0] - (int32_t)gInverterMeasurements.uCurrOffsetU)
+      * -AMPERES_PER_BIT;
+  fCurrent[1] = (float)((int32_t)gInverterMeasurements.uCurrSens[1] - (int32_t)gInverterMeasurements.uCurrOffsetV)
+      * AMPERES_PER_BIT;
+  fCurrent[2] = (float)((int32_t)gInverterMeasurements.uCurrSens[2] - (int32_t)gInverterMeasurements.uCurrOffsetW)
+      * AMPERES_PER_BIT;
+
+	uAngleManual = uAngleManual + uIncrementManual;
+
+  //scrutiny_loop_process(100U);
 
   /* USER CODE END TIM1_UP_IRQn 0 */
   HAL_TIM_IRQHandler(&htim1);
@@ -227,20 +260,6 @@ void TIM1_UP_IRQHandler(void)
 
   uProfileLength = PROFILER_READ();
   /* USER CODE END TIM1_UP_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM4 global interrupt.
-  */
-void TIM4_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM4_IRQn 0 */
-
-  /* USER CODE END TIM4_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim4);
-  /* USER CODE BEGIN TIM4_IRQn 1 */
-
-  /* USER CODE END TIM4_IRQn 1 */
 }
 
 /**

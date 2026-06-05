@@ -37,6 +37,9 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
+extern uint16_t uAngleMech;
+extern uint16_t uAngleEl;
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
