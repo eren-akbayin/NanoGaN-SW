@@ -26,6 +26,7 @@
 #include "measurement.h"
 #include "core_tasks.h"
 #include "cordic.h"
+#include "scrutiny_integration.h"
 
 /* USER CODE END Includes */
 
@@ -46,6 +47,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
+uint32_t uProfileLength = 0;
+
 uint16_t uAngle = 0;
 uint16_t uIncrement = 100;
 
@@ -202,6 +205,8 @@ void TIM1_UP_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM1_UP_IRQn 0 */
 
+  PROFILER_START();
+
   uWriteData = 0x7FFF0000 | (uint32_t)uAngle;
 
   hcordic.Instance->WDATA = uWriteData;
@@ -213,10 +218,14 @@ void TIM1_UP_IRQHandler(void)
 
   uAngle += uIncrement;
 
+  scrutiny_loop_process(100U);
+
   /* USER CODE END TIM1_UP_IRQn 0 */
   HAL_TIM_IRQHandler(&htim1);
   /* USER CODE BEGIN TIM1_UP_IRQn 1 */
+  PROFILER_STOP();
 
+  uProfileLength = PROFILER_READ();
   /* USER CODE END TIM1_UP_IRQn 1 */
 }
 
