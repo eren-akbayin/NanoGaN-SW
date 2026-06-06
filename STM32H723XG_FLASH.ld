@@ -152,14 +152,14 @@ SECTIONS
   } >FLASH
 
   /* used by the startup to initialize data */
-  /* DMA-accessible data in AXI SRAM (RAM_D1, 0x24000000) — DTCM is CPU-only */
+  /* DMA-accessible data in AXI SRAM (RAM_D3) — DTCM is CPU-only */
   .dma_data (NOLOAD) :
   {
     . = ALIGN(4);
     *(.dma_data)
     *(.dma_data*)
     . = ALIGN(4);
-  } >RAM_D1
+  } >RAM_D3
 
   /* D2 SRAM (0x30000000, 32K) — accessible by DMA1/DMA2/MDMA */
   .d2_bss (NOLOAD) :

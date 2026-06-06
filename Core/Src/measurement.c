@@ -1,13 +1,10 @@
 #include "measurement.h"
 #include "adc.h"
 #include "cmsis_os2.h"
-#include "stm32h7xx_hal_spi.h"
 #include "tim.h"
 #include "spi.h"
 #include "main.h"
 #include "cmsis_os.h"
-#include "string.h"
-
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MAX3(a,b,c) MAX(MAX(a,b),c)
@@ -31,7 +28,7 @@ static int32_t calibrateOffset(uint32_t *pData, uint32_t len, uint8_t offset);
 
 //Shutdown settings
 
-#define NUMBER_OF_NOPS 500 //This is how much we keep ADCs going after shutdown.
+#define NUMBER_OF_NOPS 0 //This is how much we keep ADCs going after shutdown.
 
 static int32_t calibrateOffset(uint32_t *pData, uint32_t len, uint8_t offset)
 {
@@ -53,20 +50,22 @@ void stopMeasurements(void)
 {
 
 	HAL_TIM_Base_Stop(&htim2);
+	HAL_SPI_DMAStop(&hspi2);
 
 	HAL_ADC_Stop_DMA(&hadc1);
 	HAL_ADC_Stop_DMA(&hadc2);
 	HAL_ADC_Stop_DMA(&hadc3);
-	
+
 }
 
 void startMeasurements(void)
 {
 
-	HAL_ADC_Start_DMA(&hadc1, gInverterMeasurements.uPhaseSens, 3 * MEASUREMENT_SIZE);
-	HAL_ADC_Start_DMA(&hadc2, gInverterMeasurements.uCurrSens, 3 * MEASUREMENT_SIZE);
-	HAL_ADC_Start_DMA(&hadc3, gInverterMeasurements.uDcLinkVoltage, MEASUREMENT_SIZE);
+	HAL_ADC_Start_DMA(&hadc1, gInverterMeasurements.uPhaseSens, 3 * 10);
+	HAL_ADC_Start_DMA(&hadc2, gInverterMeasurements.uCurrSens, 3 * 10);
+	HAL_ADC_Start_DMA(&hadc3, gInverterMeasurements.uDcLinkVoltage, 10);
 
+	HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&uAngleRaw, 1);
 	HAL_TIM_Base_Start(&htim2);
 
 }
@@ -88,9 +87,9 @@ void calibrateSensorsSetShutdowns(float i_max, float u_min, float u_max)
 
 	stopMeasurements();
 
-	gInverterMeasurements.uCurrOffsetU = calibrateOffset(gInverterMeasurements.uCurrSens, 3 * MEASUREMENT_SIZE, 0);
-	gInverterMeasurements.uCurrOffsetV = calibrateOffset(gInverterMeasurements.uCurrSens, 3 * MEASUREMENT_SIZE, 1);
-	gInverterMeasurements.uCurrOffsetW = calibrateOffset(gInverterMeasurements.uCurrSens, 3 * MEASUREMENT_SIZE, 2);
+	gInverterMeasurements.uCurrOffsetU = calibrateOffset(gInverterMeasurements.uCurrSens, 3 * 10, 0);
+	gInverterMeasurements.uCurrOffsetV = calibrateOffset(gInverterMeasurements.uCurrSens, 3 * 10, 1);
+	gInverterMeasurements.uCurrOffsetW = calibrateOffset(gInverterMeasurements.uCurrSens, 3 * 10, 2);
 
 	uint32_t uAwdHigh = MIN3(gInverterMeasurements.uCurrOffsetU, gInverterMeasurements.uCurrOffsetV, gInverterMeasurements.uCurrOffsetW)
 			+ (uint32_t)(BITS_PER_AMPERE * i_max);
@@ -210,16 +209,15 @@ void getShutdownInfo(measurementType_t measurementType)
 
 	//Start collecting information
 	gShutdownInfo.measurementType = measurementType;
-	gShutdownInfo.dmaIndexPhaseCurrents = 3 * MEASUREMENT_SIZE - *(volatile uint32_t*) PHASE_CURRENT_DMA_NDTR;
-	gShutdownInfo.dmaIndexPhaseVoltages = 3 * MEASUREMENT_SIZE - *(volatile uint32_t*) PHASE_VOLTAGE_DMA_NDTR;
-	gShutdownInfo.dmaIndexAngle = MEASUREMENT_SIZE/2 - *(volatile uint32_t*) ANGLE_DMA_NDTR;
-	gShutdownInfo.dmaIndexDCVoltage = MEASUREMENT_SIZE - *(volatile uint32_t*) DC_VOLTAGE_DMA_NDTR;
+	gShutdownInfo.dmaIndexPhaseCurrents = 3 * 10 - *(volatile uint32_t*) PHASE_CURRENT_DMA_NDTR;
+	gShutdownInfo.dmaIndexPhaseVoltages = 3 * 10 - *(volatile uint32_t*) PHASE_VOLTAGE_DMA_NDTR;
+	gShutdownInfo.dmaIndexDCVoltage = 10 - *(volatile uint32_t*) DC_VOLTAGE_DMA_NDTR;
 
 	uint16_t i;
 
 	if (gShutdownInfo.measurementType == VOLTAGE)
 			{
-		i = 3 * MEASUREMENT_SIZE - *(volatile uint32_t*) DC_VOLTAGE_DMA_NDTR;
+		i = 3 * 10 - *(volatile uint32_t*) DC_VOLTAGE_DMA_NDTR;
 
 		gShutdownInfo.thresholds.lowerThresholdRaw = AnalogWDGConfig_VoltageDc.LowThreshold;
 		gShutdownInfo.thresholds.upperThresholdRaw = AnalogWDGConfig_VoltageDc.HighThreshold;
@@ -239,7 +237,7 @@ void getShutdownInfo(measurementType_t measurementType)
 
 			i++;
 
-			if (i == 3 * MEASUREMENT_SIZE)
+			if (i == 3 * 10)
 				i = 0;
 
 		} while (i != gShutdownInfo.dmaIndexDCVoltage);
@@ -253,7 +251,7 @@ void getShutdownInfo(measurementType_t measurementType)
 	}
 	else if (gShutdownInfo.measurementType == CURRENT)
 			{
-		i = 3 * MEASUREMENT_SIZE - *(volatile uint32_t*) PHASE_CURRENT_DMA_NDTR;
+		i = 3 * 10 - *(volatile uint32_t*) PHASE_CURRENT_DMA_NDTR;
 		gShutdownInfo.thresholds.lowerThresholdRaw = AnalogWDGConfig_Currents.LowThreshold;
 		gShutdownInfo.thresholds.upperThresholdRaw = AnalogWDGConfig_Currents.HighThreshold;
 
@@ -265,7 +263,7 @@ void getShutdownInfo(measurementType_t measurementType)
 
 			i++;
 
-			if (i == 3 * MEASUREMENT_SIZE)
+			if (i == 3 * 10)
 				i = 0;
 
 		} while (i != gShutdownInfo.dmaIndexPhaseCurrents);
@@ -305,14 +303,9 @@ void getShutdownInfo(measurementType_t measurementType)
 			break;
 		default:
 			break;
-			}
+		}
 
 	}
 
-	gInverterMeasurements.dmaIndexPhaseCurrents = gShutdownInfo.dmaIndexPhaseCurrents;
-	gInverterMeasurements.dmaIndexDCVoltage = gShutdownInfo.dmaIndexDCVoltage;
-	gInverterMeasurements.dmaIndexPhaseVoltages = gShutdownInfo.dmaIndexPhaseVoltages;
-	gInverterMeasurements.dmaIndexAngle = gShutdownInfo.dmaIndexAngle;
-	gInverterMeasurements.faultIndex = gShutdownInfo.faultIndex;
 }
 

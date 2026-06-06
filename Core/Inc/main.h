@@ -38,7 +38,8 @@ extern "C" {
 /* USER CODE BEGIN ET */
 
 extern uint16_t uAngleMech;
-extern uint16_t uAngleEl;
+
+extern volatile uint16_t uAngleRaw;
 
 /* USER CODE END ET */
 

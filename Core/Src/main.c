@@ -57,7 +57,8 @@
 /* USER CODE BEGIN PV */
 
 uint16_t uAngleMech = 0;
-uint16_t uAngleEl = 0;
+
+volatile uint16_t uAngleRaw __attribute__((section(".dma_data")));
 
 /* USER CODE END PV */
 
@@ -126,11 +127,14 @@ int main(void)
   MX_USB_OTG_HS_PCD_Init();
   MX_CORDIC_Init();
   MX_TIM5_Init();
+  MX_TIM3_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
   tusb_init();
-  
+  HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&uAngleRaw,1);
+  HAL_GPIO_WritePin(SPI2_MOSI_GPIO_Port, SPI2_MOSI_Pin, GPIO_PIN_SET);
+
   /* USER CODE END 2 */
 
   /* Init scheduler */

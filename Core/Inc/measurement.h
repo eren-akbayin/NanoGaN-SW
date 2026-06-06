@@ -11,36 +11,22 @@
 #define BITS_PER_VOLT 790.0f/12.0f
 #define DEGREES_PER_BIT 360.0f/16384.0f
 
+
+
+#define POLE_PAIR 4
+#define ANGLE_OFFSET 13158
+
 // DMA Pointers
 
 #define PHASE_VOLTAGE_DMA_NDTR 	0x40020014 //DMA1 Stream 0 NDTR
 #define PHASE_CURRENT_DMA_NDTR 	0x4002002c //DMA1 Stream 1 NDTR
-#define DC_VOLTAGE_DMA_NDTR 	0x4002005c //DMA1 Stream 3 NDTR
-#define ANGLE_DMA_NDTR		    0x4002042c //DMA2 Stream 1 NDTR
-
-#define MEASUREMENT_SIZE 1000
+#define DC_VOLTAGE_DMA_NDTR 	0x40020044 //DMA1 Stream 2 NDTR
+#define ANGLE_DMA_NDTR		    0x4002005c //DMA1 Stream 3 NDTR
 
 // Typedef for measurement and shutdown
 
 // Measurement
-
 typedef struct {
-    //Buffer length
-    uint32_t bufferSize;
-
-    //Indexes
-    uint32_t dmaIndexPhaseCurrents;
-    uint32_t dmaIndexPhaseVoltages;
-    uint32_t dmaIndexDCVoltage;
-    uint32_t dmaIndexAngle;
-    uint32_t faultIndex;
-
-    //Time Step
-    uint32_t uTimeStepUs;
-
-    //Conversion constants
-    float fVoltPerBit;
-    float fAmperePerbit;
 
     // Current offsets
     volatile uint16_t uCurrOffsetU;
@@ -48,17 +34,14 @@ typedef struct {
     volatile uint16_t uCurrOffsetW;
 
     // Voltage & sensor measurements
-    uint32_t uDcLinkVoltage[MEASUREMENT_SIZE];
-    uint32_t uPhaseSens[3*MEASUREMENT_SIZE];
-    uint32_t uCurrSens[3*MEASUREMENT_SIZE];
+    uint32_t uDcLinkVoltage[10];
+    uint32_t uPhaseSens[3*10];
+    uint32_t uCurrSens[3*10];
 
-    uint16_t uMechPosition[MEASUREMENT_SIZE / 2];
+	uint16_t uAngleOffset;
+    uint16_t uAngleEl;
 
-    uint16_t uAngleoffset;
     uint8_t uPolePair;
-
-    uint16_t indexDTC;
-    uint16_t uDTC[MEASUREMENT_SIZE/10][3];
 
 } inverterMeasurementsTypeDef_t;
 

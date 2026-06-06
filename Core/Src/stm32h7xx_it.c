@@ -50,7 +50,10 @@
 uint32_t uProfileLength = 0;
 
 uint16_t uAngleManual = 0;
-uint16_t uIncrementManual = 100;
+uint16_t uIncrementManual = 0;
+
+uint16_t uAngleSelected = 0;
+uint8_t uAngleSelection = 0;
 
 float fCurrent[3] = {0.0f, 0.0f, 0.0f};
 
@@ -213,9 +216,22 @@ void TIM1_UP_IRQHandler(void)
 
   PROFILER_START();
 
-  uint16_t uAngleSelected;
+  uAngleMech = (uint16_t)(-(uint16_t)((uAngleRaw & 0x3FFF) << 2));
 
-	uAngleSelected = uAngleManual;
+  gInverterMeasurements.uAngleEl = (uint16_t)((uint32_t)uAngleMech * gInverterMeasurements.uPolePair) + gInverterMeasurements.uAngleOffset;
+
+  switch (uAngleSelection)
+  {
+    case 0:
+      uAngleSelected = uAngleManual;
+      break;
+    case 1:
+      uAngleSelected = gInverterMeasurements.uAngleEl;
+      break;
+    default:
+      uAngleSelected = uAngleManual;
+      break;
+  }
 
 	uint32_t uWriteData = 0x7FFF0000 | (uint32_t)uAngleSelected;
 
@@ -251,7 +267,7 @@ void TIM1_UP_IRQHandler(void)
 
 	uAngleManual = uAngleManual + uIncrementManual;
 
-  //scrutiny_loop_process(100U);
+  scrutiny_loop_process(100U);
 
   /* USER CODE END TIM1_UP_IRQn 0 */
   HAL_TIM_IRQHandler(&htim1);

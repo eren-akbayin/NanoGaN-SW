@@ -6,6 +6,8 @@
 #include "scrutiny_integration.h"
 #include "measurement.h"
 
+uint8_t uFsmManual = 0;
+
 osThreadId_t usbDeviceTaskHandle;
 const osThreadAttr_t usb_device_task_attributes = {
     .name = "usbDeviceTask",
@@ -35,6 +37,11 @@ void scrutinyTask(void *param)
     scrutiny_integration_init();
 
     while (1) {
+        if (!tud_cdc_n_connected(SCRUTINY_CDC)) {
+            osThreadYield();
+            continue;
+        }
+
         /* RX */
         uint8_t rx_buf[64];
         uint32_t count = tud_cdc_n_read(SCRUTINY_CDC, rx_buf, sizeof(rx_buf));
@@ -63,6 +70,7 @@ const osThreadAttr_t userCDC_task_attributes = {
 
 static void cdc_reply(const char *str)
 {
+    if (!tud_cdc_n_connected(USER_CDC)) return;
     tud_cdc_n_write(USER_CDC, (const uint8_t *)str, strlen(str));
     tud_cdc_n_write_flush(USER_CDC);
 }
@@ -70,6 +78,21 @@ static void cdc_reply(const char *str)
 void userCDCTask(void *param)
 {
     while (1) {
+        /* Manual FSM trigger (set from debugger/Scrutiny; 1=active, 2=standby, 3=reset) */
+        if (uFsmManual != 0) {
+            if (uFsmManual == 1) {
+                inverter_fsm_post_event(INV_EVT_STOP);
+                cdc_reply("-> STANDBY\r\n");
+            } else if (uFsmManual == 2) {
+                inverter_fsm_post_event(INV_EVT_START);
+                cdc_reply("-> ACTIVE\r\n");
+            } else if (uFsmManual == 3) {
+                inverter_fsm_post_event(INV_EVT_RESET);
+                cdc_reply("-> RESET\r\n");
+            }
+            uFsmManual = 0;
+        }
+
         uint8_t rx_buf[64];
         uint32_t count = tud_cdc_n_read(USER_CDC, rx_buf, sizeof(rx_buf));
         if (count > 0) {
@@ -124,8 +147,11 @@ static void fsm_enter_init(void)
     HAL_GPIO_WritePin(LED_FAULT_GPIO_Port,  LED_FAULT_Pin,  GPIO_PIN_RESET);
 
     /* TODO: set real limits for your hardware */
-    calibrateSensorsSetShutdowns(3.0f, 11.0f, 15.0f);
+    calibrateSensorsSetShutdowns(5.0f, 11.0f, 15.0f);
 	HAL_TIM_Base_Start_IT(&htim1);
+    gInverterMeasurements.uAngleOffset = ANGLE_OFFSET;
+
+	gInverterMeasurements.uPolePair = POLE_PAIR;
 
     inverter_fsm_post_event(INV_EVT_INIT_DONE);
 }
