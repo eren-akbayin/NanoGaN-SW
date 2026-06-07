@@ -57,6 +57,10 @@ uint8_t uAngleSelection = 0;
 
 float fCurrent[3] = {0.0f, 0.0f, 0.0f};
 
+float fPhaseVoltage[3] = {0.0f, 0.0f, 0.0f};
+
+float fDcVoltage = 0.0f;
+
 uint32_t uWriteData = 0;
 uint32_t uRawData = 0;
 
@@ -244,13 +248,13 @@ void TIM1_UP_IRQHandler(void)
 	fCosAlpha = (float)(int16_t)(uRawData) * (1.0f / 32767.0f);
 	fSinAlpha = (float)(int16_t)((uRawData >> 16)) * (1.0f / 32767.0f);
 
-	float Valpha = fDutyD * fCosAlpha - fDutyQ * fSinAlpha;
-	float Vbeta = fDutyD * fSinAlpha + fDutyQ * fCosAlpha;
+	float U_alpha = fDutyD * fCosAlpha - fDutyQ * fSinAlpha;
+	float U_beta = fDutyD * fSinAlpha + fDutyQ * fCosAlpha;
 
 	// Inverse Clarke → 3-phase duty cycles
-	uDTC[0] = (uint32_t)((Valpha) * (ARR_VAL>>1) + (ARR_VAL>>1));
-	uDTC[1]  = (uint32_t)((-Valpha * 0.5f + Vbeta * 0.866025f) * (ARR_VAL>>1) + (ARR_VAL>>1));
-	uDTC[2]  = (uint32_t)((-Valpha * 0.5f - Vbeta * 0.866025f) * (ARR_VAL>>1) + (ARR_VAL>>1));
+	uDTC[0] = (uint32_t)((U_alpha) * (ARR_VAL>>1) + (ARR_VAL>>1));
+	uDTC[1]  = (uint32_t)((-U_alpha * 0.5f + U_beta * 0.866025f) * (ARR_VAL>>1) + (ARR_VAL>>1));
+	uDTC[2]  = (uint32_t)((-U_alpha * 0.5f - U_beta * 0.866025f) * (ARR_VAL>>1) + (ARR_VAL>>1));
 
 	TIM1->CCR3 = uDTC[0];
 
@@ -265,6 +269,14 @@ void TIM1_UP_IRQHandler(void)
   fCurrent[2] = (float)((int32_t)gInverterMeasurements.uCurrSens[2] - (int32_t)gInverterMeasurements.uCurrOffsetW)
       * AMPERES_PER_BIT;
 
+  fPhaseVoltage[0] = (float)gInverterMeasurements.uPhaseSens[0] * VOLTS_PER_BIT;
+
+  fPhaseVoltage[1] = (float)gInverterMeasurements.uPhaseSens[1] * VOLTS_PER_BIT;
+  
+  fPhaseVoltage[2] = (float)gInverterMeasurements.uPhaseSens[2] * VOLTS_PER_BIT;
+
+  fDcVoltage = (float)(gInverterMeasurements.uDcLinkVoltage[0]) * VOLTS_PER_BIT;
+  
 	uAngleManual = uAngleManual + uIncrementManual;
 
   scrutiny_loop_process(100U);
