@@ -8,6 +8,7 @@
 | pandas | — | CSV data loading and analysis |
 | numpy | — | Numerical computing |
 | matplotlib | — | Plotting phase voltages and currents |
+| scipy | - | Curve fitting |
 
 ### Setup
 
