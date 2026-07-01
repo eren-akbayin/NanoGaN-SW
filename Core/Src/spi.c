@@ -124,7 +124,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
     hdma_spi2_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
     hdma_spi2_rx.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
     hdma_spi2_rx.Init.Mode = DMA_CIRCULAR;
-    hdma_spi2_rx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_spi2_rx.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     hdma_spi2_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     if (HAL_DMA_Init(&hdma_spi2_rx) != HAL_OK)
     {
@@ -172,5 +172,21 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
 }
 
 /* USER CODE BEGIN 1 */
+
+/**
+  * @brief  SPI error callback. On the H7 HAL, any SPI error (e.g. an RX
+  *         overrun) disables the peripheral, aborts the DMA channel and
+  *         leaves hspi->State at READY with no further data flowing.
+  *         Nothing else in this project re-arms it, so without this the
+  *         angle sensor DMA silently dies and uAngleRaw freezes forever.
+  *         Re-arm the circular RX DMA here so it self-recovers.
+  */
+void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
+{
+  if (hspi->Instance == SPI2)
+  {
+    HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&uAngleRaw, 1);
+  }
+}
 
 /* USER CODE END 1 */

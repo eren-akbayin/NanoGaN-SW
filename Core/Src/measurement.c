@@ -30,6 +30,10 @@ static int32_t calibrateOffset(uint32_t *pData, uint32_t len, uint8_t offset);
 
 #define NUMBER_OF_NOPS 0 //This is how much we keep ADCs going after shutdown.
 
+// id and iq currents
+float fCurrD = 0.0f;
+float fCurrQ = 0.0f;
+
 static int32_t calibrateOffset(uint32_t *pData, uint32_t len, uint8_t offset)
 {
 
@@ -56,6 +60,8 @@ void stopMeasurements(void)
 	HAL_ADC_Stop_DMA(&hadc2);
 	HAL_ADC_Stop_DMA(&hadc3);
 
+	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_4);
+
 }
 
 void startMeasurements(void)
@@ -66,6 +72,7 @@ void startMeasurements(void)
 	HAL_ADC_Start_DMA(&hadc3, gInverterMeasurements.uDcLinkVoltage, 10);
 
 	HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&uAngleRaw, 1);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 	HAL_TIM_Base_Start(&htim2);
 
 }

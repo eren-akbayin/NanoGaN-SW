@@ -269,6 +269,14 @@ void TIM1_UP_IRQHandler(void)
   fCurrent[2] = (float)((int32_t)gInverterMeasurements.uCurrSens[2] - (int32_t)gInverterMeasurements.uCurrOffsetW)
       * AMPERES_PER_BIT;
 
+  // Clarke transform: 3-phase currents -> stationary alpha/beta frame
+  float I_alpha = (2.0f / 3.0f) * (fCurrent[0] - 0.5f * fCurrent[1] - 0.5f * fCurrent[2]);
+  float I_beta  = (1.0f / 1.732050808f) * (fCurrent[1] - fCurrent[2]);
+
+  // Park transform: alpha/beta -> rotating d/q frame
+  fCurrD = I_alpha * fCosAlpha + I_beta * fSinAlpha;
+  fCurrQ = -I_alpha * fSinAlpha + I_beta * fCosAlpha;
+
   fPhaseVoltage[0] = (float)gInverterMeasurements.uPhaseSens[0] * VOLTS_PER_BIT;
 
   fPhaseVoltage[1] = (float)gInverterMeasurements.uPhaseSens[1] * VOLTS_PER_BIT;

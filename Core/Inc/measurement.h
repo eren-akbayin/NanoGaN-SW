@@ -14,7 +14,7 @@
 
 
 #define POLE_PAIR 4
-#define ANGLE_OFFSET 13158
+#define ANGLE_OFFSET 56005
 
 // DMA Pointers
 
@@ -108,3 +108,7 @@ extern void stopGateDrive(void);
 extern void shutdownGateDrive(void);
 extern void getShutdownInfo(measurementType_t measurementType);
 extern void clearShutdownInfo();
+
+//Export floats for d and q currents
+extern float fCurrD;
+extern float fCurrQ;
