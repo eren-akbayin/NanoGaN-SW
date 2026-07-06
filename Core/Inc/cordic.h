@@ -41,7 +41,7 @@ extern CORDIC_HandleTypeDef hcordic;
 void MX_CORDIC_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void CORDIC_ComputeSinCos(uint16_t uAngle, volatile float *pfSinAlpha, volatile float *pfCosAlpha);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

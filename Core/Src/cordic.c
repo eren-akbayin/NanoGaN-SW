@@ -96,4 +96,28 @@ void HAL_CORDIC_MspDeInit(CORDIC_HandleTypeDef* cordicHandle)
 
 /* USER CODE BEGIN 1 */
 
+/**
+  * @brief  Compute sine and cosine of an electrical angle using the CORDIC
+  *         coprocessor (configured in MX_CORDIC_Init as COSINE, 6-cycle
+  *         precision, 1x16-bit write, 1x16-bit+16-bit read).
+  * @note   No RRDY polling is performed: reading CORDIC_RDATA before the
+  *         result is ready automatically stalls the bus (hardware wait
+  *         states) until the computation completes, so the read below
+  *         already blocks for exactly as long as necessary.
+  * @param  uAngle Angle, scaled over the full uint16_t range (0..65535 => 0..2*pi).
+  * @param  pfSinAlpha Output pointer, sine of the angle.
+  * @param  pfCosAlpha Output pointer, cosine of the angle.
+  */
+void CORDIC_ComputeSinCos(uint16_t uAngle, volatile float *pfSinAlpha, volatile float *pfCosAlpha)
+{
+  uint32_t uRawData;
+
+  hcordic.Instance->WDATA = 0x7FFF0000U | (uint32_t)uAngle;
+
+  uRawData = hcordic.Instance->RDATA;
+
+  *pfCosAlpha = (float)(int16_t)(uRawData) * (1.0f / 32767.0f);
+  *pfSinAlpha = (float)(int16_t)(uRawData >> 16) * (1.0f / 32767.0f);
+}
+
 /* USER CODE END 1 */

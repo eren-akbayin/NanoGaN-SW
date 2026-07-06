@@ -21,7 +21,7 @@
 #define PHASE_VOLTAGE_DMA_NDTR 	0x40020014 //DMA1 Stream 0 NDTR
 #define PHASE_CURRENT_DMA_NDTR 	0x4002002c //DMA1 Stream 1 NDTR
 #define DC_VOLTAGE_DMA_NDTR 	0x40020044 //DMA1 Stream 2 NDTR
-#define ANGLE_DMA_NDTR		    0x4002005c //DMA1 Stream 3 NDTR
+#define ANGLE_DMA_NDTR		    0x40020414 //DMA2 Stream 0 NDTR
 
 // Typedef for measurement and shutdown
 

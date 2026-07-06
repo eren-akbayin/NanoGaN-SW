@@ -136,6 +136,8 @@ void HardFault_Handler(void)
 void MemManage_Handler(void)
 {
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
+  // this is a critical fault, we need to shutdown the gate drive immediately to prevent damage to the inverter and motor. 
+  // No need to update the FSM, as we are in a critical state and cannot rely on the FSM to handle this fault. We will just shutdown the gate drive and stop all measurements.
   shutdownGateDrive();
   /* USER CODE END MemoryManagement_IRQn 0 */
   while (1)
@@ -237,16 +239,7 @@ void TIM1_UP_IRQHandler(void)
       break;
   }
 
-	uint32_t uWriteData = 0x7FFF0000 | (uint32_t)uAngleSelected;
-
-	uint32_t uRawData;
-
-	hcordic.Instance->WDATA = uWriteData;
-
-	uRawData = hcordic.Instance->RDATA;
-
-	fCosAlpha = (float)(int16_t)(uRawData) * (1.0f / 32767.0f);
-	fSinAlpha = (float)(int16_t)((uRawData >> 16)) * (1.0f / 32767.0f);
+	CORDIC_ComputeSinCos(uAngleSelected, &fSinAlpha, &fCosAlpha);
 
 	float U_alpha = fDutyD * fCosAlpha - fDutyQ * fSinAlpha;
 	float U_beta = fDutyD * fSinAlpha + fDutyQ * fCosAlpha;
