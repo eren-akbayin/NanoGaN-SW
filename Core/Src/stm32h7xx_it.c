@@ -27,6 +27,7 @@
 #include "core_tasks.h"
 #include "cordic.h"
 #include "scrutiny_integration.h"
+#include "mc_math.h"
 
 /* USER CODE END Includes */
 
@@ -222,9 +223,9 @@ void TIM1_UP_IRQHandler(void)
 
   PROFILER_START();
 
-  uAngleMech = (uint16_t)(-(uint16_t)((uAngleRaw & 0x3FFF) << 2));
+  uAngleMech = Angle_RawToMechanical(uAngleRaw);
 
-  gInverterMeasurements.uAngleEl = (uint16_t)((uint32_t)uAngleMech * gInverterMeasurements.uPolePair) + gInverterMeasurements.uAngleOffset;
+  gInverterMeasurements.uAngleEl = Angle_MechanicalToElectrical(uAngleMech, gInverterMeasurements.uPolePair, gInverterMeasurements.uAngleOffset);
 
   switch (uAngleSelection)
   {
@@ -241,13 +242,15 @@ void TIM1_UP_IRQHandler(void)
 
 	CORDIC_ComputeSinCos(uAngleSelected, &fSinAlpha, &fCosAlpha);
 
-	float U_alpha = fDutyD * fCosAlpha - fDutyQ * fSinAlpha;
-	float U_beta = fDutyD * fSinAlpha + fDutyQ * fCosAlpha;
+	float U_alpha, U_beta;
+	Park_Inverse(fDutyD, fDutyQ, fSinAlpha, fCosAlpha, &U_alpha, &U_beta);
 
 	// Inverse Clarke → 3-phase duty cycles
-	uDTC[0] = (uint32_t)((U_alpha) * (ARR_VAL>>1) + (ARR_VAL>>1));
-	uDTC[1]  = (uint32_t)((-U_alpha * 0.5f + U_beta * 0.866025f) * (ARR_VAL>>1) + (ARR_VAL>>1));
-	uDTC[2]  = (uint32_t)((-U_alpha * 0.5f - U_beta * 0.866025f) * (ARR_VAL>>1) + (ARR_VAL>>1));
+	float fDutyPhase[3];
+	Clarke_Inverse(U_alpha, U_beta, fDutyPhase);
+	uDTC[0] = (uint32_t)(fDutyPhase[0] * (ARR_VAL>>1) + (ARR_VAL>>1));
+	uDTC[1] = (uint32_t)(fDutyPhase[1] * (ARR_VAL>>1) + (ARR_VAL>>1));
+	uDTC[2] = (uint32_t)(fDutyPhase[2] * (ARR_VAL>>1) + (ARR_VAL>>1));
 
 	TIM1->CCR3 = uDTC[0];
 
@@ -263,12 +266,11 @@ void TIM1_UP_IRQHandler(void)
       * AMPERES_PER_BIT;
 
   // Clarke transform: 3-phase currents -> stationary alpha/beta frame
-  float I_alpha = (2.0f / 3.0f) * (fCurrent[0] - 0.5f * fCurrent[1] - 0.5f * fCurrent[2]);
-  float I_beta  = (1.0f / 1.732050808f) * (fCurrent[1] - fCurrent[2]);
+  float I_alpha, I_beta;
+  Clarke_Forward(fCurrent, &I_alpha, &I_beta);
 
   // Park transform: alpha/beta -> rotating d/q frame
-  fCurrD = I_alpha * fCosAlpha + I_beta * fSinAlpha;
-  fCurrQ = -I_alpha * fSinAlpha + I_beta * fCosAlpha;
+  Park_Forward(I_alpha, I_beta, fSinAlpha, fCosAlpha, &fCurrD, &fCurrQ);
 
   fPhaseVoltage[0] = (float)gInverterMeasurements.uPhaseSens[0] * VOLTS_PER_BIT;
 

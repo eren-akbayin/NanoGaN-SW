@@ -75,6 +75,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/Core/Src/core_tasks.c
     ${CMAKE_SOURCE_DIR}/Core/Src/scrutiny_integration.c
     ${CMAKE_SOURCE_DIR}/Core/Src/measurement.c
+    ${CMAKE_SOURCE_DIR}/Core/Src/mc_math.c
+    ${CMAKE_SOURCE_DIR}/Core/Src/parameters.c
 
     # TinyUSB STM32H7 DWC2 hardware driver (device mode)
     # Switch dcd_dwc2.c -> hcd_dwc2.c if you need host mode

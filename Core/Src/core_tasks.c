@@ -5,6 +5,7 @@
 #include "tusb.h"
 #include "scrutiny_integration.h"
 #include "measurement.h"
+#include "parameters.h"
 
 uint8_t uFsmManual = 0;
 
@@ -56,6 +57,9 @@ void scrutinyTask(void *param)
             tud_cdc_n_write(SCRUTINY_CDC, tx_buf, tx_len);
         }
         tud_cdc_n_write_flush(SCRUTINY_CDC);
+
+        /* Detect parameters Scrutiny wrote directly into gParameters and fire callbacks */
+        Parameters_Poll();
 
         osThreadYield();
     }
@@ -141,17 +145,36 @@ InverterState_t inverter_fsm_get_state(void)
     return s_fsmState;
 }
 
+/* Parameter change callbacks: keep the ISR-facing shadow copies in gInverterMeasurements
+   in sync whenever these parameters change (e.g. from a live Scrutiny write). */
+static void onAngleOffsetChanged(ParamId_t paramId, float fOldValue, float fNewValue)
+{
+    (void)paramId;
+    (void)fOldValue;
+    gInverterMeasurements.uAngleOffset = (uint16_t)fNewValue;
+}
+
+static void onPolePairsChanged(ParamId_t paramId, float fOldValue, float fNewValue)
+{
+    (void)paramId;
+    (void)fOldValue;
+    gInverterMeasurements.uPolePair = (uint8_t)fNewValue;
+}
+
 static void fsm_enter_init(void)
 {
     HAL_GPIO_WritePin(LED_ACTIVE_GPIO_Port, LED_ACTIVE_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(LED_FAULT_GPIO_Port,  LED_FAULT_Pin,  GPIO_PIN_RESET);
 
-    /* TODO: set real limits for your hardware */
-    calibrateSensorsSetShutdowns(5.0f, 11.0f, 15.0f);
-	HAL_TIM_Base_Start_IT(&htim1);
-    gInverterMeasurements.uAngleOffset = ANGLE_OFFSET;
+    Parameters_Init();
+    Parameters_RegisterCallback(PARAM_ANGLE_OFFSET, onAngleOffsetChanged);
+    Parameters_RegisterCallback(PARAM_POLE_PAIRS, onPolePairsChanged);
 
-	gInverterMeasurements.uPolePair = POLE_PAIR;
+    calibrateSensorsSetShutdowns(gParameters.fMaxPhaseCurrent, gParameters.fMinDcVoltage, gParameters.fMaxDcVoltage);
+	HAL_TIM_Base_Start_IT(&htim1);
+    gInverterMeasurements.uAngleOffset = gParameters.uAngleOffset;
+
+	gInverterMeasurements.uPolePair = gParameters.uPolePairs;
 
     inverter_fsm_post_event(INV_EVT_INIT_DONE);
 }
