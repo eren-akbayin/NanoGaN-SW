@@ -218,7 +218,7 @@ void TIM1_UP_IRQHandler(void)
 
   PROFILER_START();
 
-  gParameters.uAngleMech = Angle_RawToMechanical(gParameters.uAngleRaw, gInverterMeasurements.uAngleOffset);
+  gParameters.uAngleMech = Angle_RawToMechanical(gInverterMeasurements.uAngleRaw, gInverterMeasurements.uAngleOffset);
 
   gParameters.uAngleEl = Angle_MechanicalToElectrical(gParameters.uAngleMech, gInverterMeasurements.uPolePair);
 
@@ -294,6 +294,15 @@ void TIM1_UP_IRQHandler(void)
 void TIM4_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM4_IRQn 0 */
+
+  /* TIM4 fires at 10kHz (100us period); uAngleMech wraps every 65536 counts
+     per mechanical revolution, so the signed delta since the last tick
+     converts directly to RPM. */
+  static uint16_t s_uAngleMechPrev = 0;
+  int16_t iAngleDelta = (int16_t)(gParameters.uAngleMech - s_uAngleMechPrev);
+  s_uAngleMechPrev = gParameters.uAngleMech;
+
+  gInverterMeasurements.fSpeedRpm = (float)iAngleDelta * (60.0f * 10000.0f / 65536.0f);
 
   scrutiny_daq_loop_process(1000U);
 

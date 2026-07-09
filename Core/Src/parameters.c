@@ -29,7 +29,7 @@ float Parameters_Get(ParamId_t paramId)
     case PARAM_INCREMENT_MANUAL:    return (float)gParameters.uIncrementManual;
     case PARAM_ANGLE_MECH:          return (float)gParameters.uAngleMech;
     case PARAM_ANGLE_EL:            return (float)gParameters.uAngleEl;
-    case PARAM_ANGLE_RAW:           return (float)gParameters.uAngleRaw;
+    case PARAM_ANGLE_RAW:           return (float)gInverterMeasurements.uAngleRaw;
     default:                        return 0.0f;
     }
 }
@@ -56,7 +56,7 @@ static void Parameters_Write(ParamId_t paramId, float fValue)
     case PARAM_INCREMENT_MANUAL:    gParameters.uIncrementManual   = (uint16_t)fValue; break;
     case PARAM_ANGLE_MECH:          gParameters.uAngleMech         = (uint16_t)fValue; break;
     case PARAM_ANGLE_EL:            gParameters.uAngleEl           = (uint16_t)fValue; break;
-    case PARAM_ANGLE_RAW:           gParameters.uAngleRaw          = (uint16_t)fValue; break;
+    case PARAM_ANGLE_RAW:           gInverterMeasurements.uAngleRaw = (uint16_t)fValue; break;
     default: break;
     }
 }
@@ -127,7 +127,6 @@ void Parameters_Init(void)
     gParameters.uIncrementManual   = 0;
     gParameters.uAngleMech         = 0;
     gParameters.uAngleEl           = 0;
-    gParameters.uAngleRaw          = 0;
 
     for (int i = 0; i < PARAM_COUNT; i++)
     {

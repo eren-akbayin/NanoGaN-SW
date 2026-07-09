@@ -130,7 +130,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   tusb_init();
-  HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&gParameters.uAngleRaw, 1);
+  HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&gInverterMeasurements.uAngleRaw, 1);
   HAL_GPIO_WritePin(SPI2_MOSI_GPIO_Port, SPI2_MOSI_Pin, GPIO_PIN_SET);
 
   /* USER CODE END 2 */

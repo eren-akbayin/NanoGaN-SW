@@ -51,7 +51,6 @@ typedef struct {
     uint16_t uIncrementManual;
     uint16_t uAngleMech;
     uint16_t uAngleEl;
-    volatile uint16_t uAngleRaw; /* SPI2 RX-DMA target; gParameters must stay in .dma_data (RAM_D3) */
 } Parameters_t;
 
 extern Parameters_t gParameters;

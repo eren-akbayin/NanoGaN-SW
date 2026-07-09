@@ -33,9 +33,13 @@ typedef struct {
     uint32_t uPhaseSens[3*10];
     uint32_t uCurrSens[3*10];
 
+    volatile uint16_t uAngleRaw; /* SPI2 RX-DMA target; struct must stay in .dma_data (RAM_D3) */
+
 	uint16_t uAngleOffset;
 
     uint8_t uPolePair;
+
+    float fSpeedRpm; /* mechanical speed, signed (+/- = direction); computed in TIM4_IRQHandler */
 
 } inverterMeasurementsTypeDef_t;
 

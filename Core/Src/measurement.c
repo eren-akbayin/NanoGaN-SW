@@ -72,7 +72,7 @@ void startMeasurements(void)
 	HAL_ADC_Start_DMA(&hadc2, gInverterMeasurements.uCurrSens, 3 * 10);
 	HAL_ADC_Start_DMA(&hadc3, gInverterMeasurements.uDcLinkVoltage, 10);
 
-	HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&gParameters.uAngleRaw, 1);
+	HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&gInverterMeasurements.uAngleRaw, 1);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 	HAL_TIM_Base_Start(&htim2);
 

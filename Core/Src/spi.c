@@ -21,7 +21,7 @@
 #include "spi.h"
 
 /* USER CODE BEGIN 0 */
-#include "parameters.h"
+#include "measurement.h"
 
 /* USER CODE END 0 */
 
@@ -186,7 +186,7 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
 {
   if (hspi->Instance == SPI2)
   {
-    HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&gParameters.uAngleRaw, 1);
+    HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&gInverterMeasurements.uAngleRaw, 1);
   }
 }
 /* USER CODE END 1 */
