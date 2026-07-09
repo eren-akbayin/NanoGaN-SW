@@ -11,11 +11,6 @@
 #define BITS_PER_VOLT 790.0f/12.0f
 #define DEGREES_PER_BIT 360.0f/16384.0f
 
-
-
-#define POLE_PAIR 4
-#define ANGLE_OFFSET 56005
-
 // DMA Pointers
 
 #define PHASE_VOLTAGE_DMA_NDTR 	0x40020014 //DMA1 Stream 0 NDTR
@@ -39,7 +34,6 @@ typedef struct {
     uint32_t uCurrSens[3*10];
 
 	uint16_t uAngleOffset;
-    uint16_t uAngleEl;
 
     uint8_t uPolePair;
 

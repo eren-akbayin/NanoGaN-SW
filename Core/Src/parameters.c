@@ -2,7 +2,7 @@
 #include "measurement.h"
 #include <string.h>
 
-Parameters_t gParameters;
+Parameters_t gParameters __attribute__((section(".dma_data")));
 
 static float s_lastValues[PARAM_COUNT];
 static ParamChangedCallback_t s_callbacks[PARAM_COUNT];
@@ -22,6 +22,14 @@ float Parameters_Get(ParamId_t paramId)
     case PARAM_MAX_DC_VOLTAGE:      return gParameters.fMaxDcVoltage;
     case PARAM_MAX_SPEED:           return gParameters.fMaxSpeed;
     case PARAM_MAX_TEMPERATURE:     return gParameters.fMaxTemperature;
+    case PARAM_DUTY_D:              return gParameters.fDutyD;
+    case PARAM_DUTY_Q:              return gParameters.fDutyQ;
+    case PARAM_ANGLE_MANUAL:        return (float)gParameters.uAngleManual;
+    case PARAM_ANGLE_SELECTION:     return (float)gParameters.uAngleSelection;
+    case PARAM_INCREMENT_MANUAL:    return (float)gParameters.uIncrementManual;
+    case PARAM_ANGLE_MECH:          return (float)gParameters.uAngleMech;
+    case PARAM_ANGLE_EL:            return (float)gParameters.uAngleEl;
+    case PARAM_ANGLE_RAW:           return (float)gParameters.uAngleRaw;
     default:                        return 0.0f;
     }
 }
@@ -41,6 +49,14 @@ static void Parameters_Write(ParamId_t paramId, float fValue)
     case PARAM_MAX_DC_VOLTAGE:      gParameters.fMaxDcVoltage      = fValue;           break;
     case PARAM_MAX_SPEED:           gParameters.fMaxSpeed          = fValue;           break;
     case PARAM_MAX_TEMPERATURE:     gParameters.fMaxTemperature    = fValue;           break;
+    case PARAM_DUTY_D:              gParameters.fDutyD             = fValue;           break;
+    case PARAM_DUTY_Q:              gParameters.fDutyQ             = fValue;           break;
+    case PARAM_ANGLE_MANUAL:        gParameters.uAngleManual       = (uint16_t)fValue; break;
+    case PARAM_ANGLE_SELECTION:     gParameters.uAngleSelection    = (uint8_t)fValue;  break;
+    case PARAM_INCREMENT_MANUAL:    gParameters.uIncrementManual   = (uint16_t)fValue; break;
+    case PARAM_ANGLE_MECH:          gParameters.uAngleMech         = (uint16_t)fValue; break;
+    case PARAM_ANGLE_EL:            gParameters.uAngleEl           = (uint16_t)fValue; break;
+    case PARAM_ANGLE_RAW:           gParameters.uAngleRaw          = (uint16_t)fValue; break;
     default: break;
     }
 }
@@ -95,15 +111,23 @@ void Parameters_Init(void)
     /* Defaults mirror the constants previously hardcoded at the call sites */
     gParameters.uAngleOffset       = ANGLE_OFFSET;
     gParameters.uPolePairs         = POLE_PAIR;
-    gParameters.fStatorResistance  = 0.0f;
-    gParameters.fStatorInductanceD = 0.0f;
-    gParameters.fStatorInductanceQ = 0.0f;
+    gParameters.fStatorResistance  = 543.0f;
+    gParameters.fStatorInductanceD = 182.0f;
+    gParameters.fStatorInductanceQ = 190.0f;
     gParameters.fFluxLinkage       = 0.0f;
     gParameters.fMaxPhaseCurrent   = 5.0f;
     gParameters.fMinDcVoltage      = 11.0f;
     gParameters.fMaxDcVoltage      = 15.0f;
     gParameters.fMaxSpeed          = 0.0f;
     gParameters.fMaxTemperature    = 0.0f;
+    gParameters.fDutyD             = 0.0f;
+    gParameters.fDutyQ             = 0.0f;
+    gParameters.uAngleManual       = 0;
+    gParameters.uAngleSelection    = 0;
+    gParameters.uIncrementManual   = 0;
+    gParameters.uAngleMech         = 0;
+    gParameters.uAngleEl           = 0;
+    gParameters.uAngleRaw          = 0;
 
     for (int i = 0; i < PARAM_COUNT; i++)
     {

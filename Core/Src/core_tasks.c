@@ -172,6 +172,7 @@ static void fsm_enter_init(void)
 
     calibrateSensorsSetShutdowns(gParameters.fMaxPhaseCurrent, gParameters.fMinDcVoltage, gParameters.fMaxDcVoltage);
 	HAL_TIM_Base_Start_IT(&htim1);
+	HAL_TIM_Base_Start_IT(&htim4);
     gInverterMeasurements.uAngleOffset = gParameters.uAngleOffset;
 
 	gInverterMeasurements.uPolePair = gParameters.uPolePairs;

@@ -78,6 +78,10 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/Core/Src/mc_math.c
     ${CMAKE_SOURCE_DIR}/Core/Src/parameters.c
 
+    ${CMAKE_SOURCE_DIR}/Application/Src/user_task.c
+    ${CMAKE_SOURCE_DIR}/Application/Src/angle_offset_calibration.c
+    ${CMAKE_SOURCE_DIR}/Application/Src/supermario_task.c
+
     # TinyUSB STM32H7 DWC2 hardware driver (device mode)
     # Switch dcd_dwc2.c -> hcd_dwc2.c if you need host mode
     ${TINYUSB_DIR}/portable/synopsys/dwc2/dcd_dwc2.c
@@ -93,6 +97,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${scrutiny-embedded_SOURCE_DIR}/cwrapper
     # Directory containing your tusb_config.h (e.g. Core/Inc/tusb_config.h)
     Core/Inc
+    Application/Inc
 )
 
 # Add project symbols (macros)

@@ -33,6 +33,7 @@
 
 #include "tusb.h"
 #include "measurement.h"
+#include "parameters.h"
 #include <stdint.h>
 
 /* USER CODE END Includes */
@@ -56,9 +57,6 @@
 
 /* USER CODE BEGIN PV */
 
-uint16_t uAngleMech = 0;
-
-volatile uint16_t uAngleRaw __attribute__((section(".dma_data")));
 
 /* USER CODE END PV */
 
@@ -132,7 +130,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   tusb_init();
-  HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&uAngleRaw,1);
+  HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&gParameters.uAngleRaw, 1);
   HAL_GPIO_WritePin(SPI2_MOSI_GPIO_Port, SPI2_MOSI_Pin, GPIO_PIN_SET);
 
   /* USER CODE END 2 */

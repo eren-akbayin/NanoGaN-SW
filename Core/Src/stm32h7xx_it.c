@@ -28,6 +28,7 @@
 #include "cordic.h"
 #include "scrutiny_integration.h"
 #include "mc_math.h"
+#include "parameters.h"
 
 /* USER CODE END Includes */
 
@@ -50,11 +51,7 @@
 /* USER CODE BEGIN PV */
 uint32_t uProfileLength = 0;
 
-uint16_t uAngleManual = 0;
-uint16_t uIncrementManual = 0;
-
 uint16_t uAngleSelected = 0;
-uint8_t uAngleSelection = 0;
 
 float fCurrent[3] = {0.0f, 0.0f, 0.0f};
 
@@ -68,10 +65,7 @@ uint32_t uRawData = 0;
 volatile float fCosAlpha;
 volatile float fSinAlpha;
 
-volatile float fDutyD = 0;
-volatile float fDutyQ = 0;
-
-uint32_t uDTC[3]; 
+uint32_t uDTC[3];
 
 /* USER CODE END PV */
 
@@ -91,6 +85,7 @@ extern ADC_HandleTypeDef hadc2;
 extern ADC_HandleTypeDef hadc3;
 extern SPI_HandleTypeDef hspi2;
 extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim4;
 extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 extern TIM_HandleTypeDef htim6;
 
@@ -223,27 +218,27 @@ void TIM1_UP_IRQHandler(void)
 
   PROFILER_START();
 
-  uAngleMech = Angle_RawToMechanical(uAngleRaw);
+  gParameters.uAngleMech = Angle_RawToMechanical(gParameters.uAngleRaw, gInverterMeasurements.uAngleOffset);
 
-  gInverterMeasurements.uAngleEl = Angle_MechanicalToElectrical(uAngleMech, gInverterMeasurements.uPolePair, gInverterMeasurements.uAngleOffset);
+  gParameters.uAngleEl = Angle_MechanicalToElectrical(gParameters.uAngleMech, gInverterMeasurements.uPolePair);
 
-  switch (uAngleSelection)
+  switch (gParameters.uAngleSelection)
   {
     case 0:
-      uAngleSelected = uAngleManual;
+      uAngleSelected = gParameters.uAngleManual;
       break;
     case 1:
-      uAngleSelected = gInverterMeasurements.uAngleEl;
+      uAngleSelected = gParameters.uAngleEl;
       break;
     default:
-      uAngleSelected = uAngleManual;
+      uAngleSelected = gParameters.uAngleManual;
       break;
   }
 
 	CORDIC_ComputeSinCos(uAngleSelected, &fSinAlpha, &fCosAlpha);
 
 	float U_alpha, U_beta;
-	Park_Inverse(fDutyD, fDutyQ, fSinAlpha, fCosAlpha, &U_alpha, &U_beta);
+	Park_Inverse(gParameters.fDutyD, gParameters.fDutyQ, fSinAlpha, fCosAlpha, &U_alpha, &U_beta);
 
 	// Inverse Clarke → 3-phase duty cycles
 	float fDutyPhase[3];
@@ -280,7 +275,7 @@ void TIM1_UP_IRQHandler(void)
 
   fDcVoltage = (float)(gInverterMeasurements.uDcLinkVoltage[0]) * VOLTS_PER_BIT;
   
-	uAngleManual = uAngleManual + uIncrementManual;
+	gParameters.uAngleManual = gParameters.uAngleManual + gParameters.uIncrementManual;
 
   scrutiny_loop_process(100U);
 
@@ -291,6 +286,22 @@ void TIM1_UP_IRQHandler(void)
 
   uProfileLength = PROFILER_READ();
   /* USER CODE END TIM1_UP_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM4 global interrupt.
+  */
+void TIM4_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM4_IRQn 0 */
+
+  scrutiny_daq_loop_process(1000U);
+
+  /* USER CODE END TIM4_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim4);
+  /* USER CODE BEGIN TIM4_IRQn 1 */
+
+  /* USER CODE END TIM4_IRQn 1 */
 }
 
 /**

@@ -26,6 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "core_tasks.h"
+#include "user_task.h"
 #include "spi.h"
 
 /* USER CODE END Includes */
@@ -100,6 +101,7 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   initCoreTasks();
+  MainAppTask_Init();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -119,7 +121,11 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
 
-  osDelay(1000);
+  osDelay(1000); // Wait for the system to stabilize before starting the main application task
+
+  MainAppTask_Wake();
+
+  osThreadExit();
 
   /* Infinite loop */
   for(;;)

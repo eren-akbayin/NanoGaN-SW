@@ -18,7 +18,12 @@ static scrutiny_c_main_handler_t *s_handler = NULL;
 #define LOOP_HANDLER_BUF_SIZE 512U
 static uint8_t loop_handler_mem[LOOP_HANDLER_BUF_SIZE];
 static scrutiny_c_loop_handler_ff_t *s_loop_handler = NULL;
-static scrutiny_c_loop_handler_t *s_loop_array[1];
+
+/* DAQ loop, driven from TIM4 @ 10kHz, feeds the embedded graph feature */
+static uint8_t daq_loop_handler_mem[LOOP_HANDLER_BUF_SIZE];
+static scrutiny_c_loop_handler_ff_t *s_daq_loop_handler = NULL;
+
+static scrutiny_c_loop_handler_t *s_loop_array[2];
 
 /* ── Comm buffers ──────────────────────────────────────────────────────── */
 #define RX_BUF_SIZE 256U
@@ -76,8 +81,16 @@ void scrutiny_integration_init(void)
         100U, /* 10us in 100ns units → 100kHz */
         "main_loop");
 
+    /* 100us fixed frequency loop = 10kHz sampling rate, driven by TIM4
+      timestep expressed in 100ns units: 100us = 1,000 × 100ns */
+    s_daq_loop_handler = scrutiny_c_loop_handler_fixed_freq_construct(
+        daq_loop_handler_mem, LOOP_HANDLER_BUF_SIZE,
+        1000U, /* 100us in 100ns units → 10kHz */
+        "daq_loop");
+
     s_loop_array[0] = (scrutiny_c_loop_handler_t *)s_loop_handler;
-    scrutiny_c_config_set_loops(config, s_loop_array, 1);
+    s_loop_array[1] = (scrutiny_c_loop_handler_t *)s_daq_loop_handler;
+    scrutiny_c_config_set_loops(config, s_loop_array, 2);
 
     scrutiny_c_main_handler_init(s_handler, config);
 
@@ -117,4 +130,12 @@ void scrutiny_loop_process(uint32_t timestep_100ns)
         return;
     }
     scrutiny_c_loop_handler_fixed_freq_process(s_loop_handler, timestep_100ns);
+}
+
+void scrutiny_daq_loop_process(uint32_t timestep_100ns)
+{
+    if (s_daq_loop_handler == NULL) {
+        return;
+    }
+    scrutiny_c_loop_handler_fixed_freq_process(s_daq_loop_handler, timestep_100ns);
 }

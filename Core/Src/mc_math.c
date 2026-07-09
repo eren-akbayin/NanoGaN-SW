@@ -1,13 +1,13 @@
 #include "mc_math.h"
 
-uint16_t Angle_RawToMechanical(uint16_t uAngleRaw)
+uint16_t Angle_RawToMechanical(uint16_t uAngleRaw, uint16_t uAngleOffset)
 {
-    return (uint16_t)(-(uint16_t)((uAngleRaw & 0x3FFF) << 2));
+    return (uint16_t)(-(uint16_t)((uAngleRaw & 0x3FFF) << 2)) - uAngleOffset;
 }
 
-uint16_t Angle_MechanicalToElectrical(uint16_t uAngleMech, uint8_t uPolePairs, uint16_t uAngleOffset)
+uint16_t Angle_MechanicalToElectrical(uint16_t uAngleMech, uint8_t uPolePairs)
 {
-    return (uint16_t)((uint32_t)uAngleMech * uPolePairs) + uAngleOffset;
+    return (uint16_t)((uint32_t)uAngleMech * uPolePairs);
 }
 
 void Clarke_Forward(const float fPhase[3], float *pfAlpha, float *pfBeta)

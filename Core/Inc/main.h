@@ -37,10 +37,6 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
-extern uint16_t uAngleMech;
-
-extern volatile uint16_t uAngleRaw;
-
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

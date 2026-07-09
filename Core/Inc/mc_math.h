@@ -7,10 +7,10 @@ extern "C" {
 #endif
 
 /* Raw angle sensor reading -> mechanical angle */
-uint16_t Angle_RawToMechanical(uint16_t uAngleRaw);
+uint16_t Angle_RawToMechanical(uint16_t uAngleRaw, uint16_t uAngleOffset);
 
 /* Mechanical angle -> electrical angle (applies pole-pair scaling and offset) */
-uint16_t Angle_MechanicalToElectrical(uint16_t uAngleMech, uint8_t uPolePairs, uint16_t uAngleOffset);
+uint16_t Angle_MechanicalToElectrical(uint16_t uAngleMech, uint8_t uPolePairs);
 
 /* Clarke transform: 3-phase quantities -> stationary alpha/beta frame */
 void Clarke_Forward(const float fPhase[3], float *pfAlpha, float *pfBeta);
