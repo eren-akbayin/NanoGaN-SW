@@ -24,10 +24,11 @@ PID = 0x4001
 def main():
     ports = [p for p in list_ports.comports() if p.vid == VID and p.pid == PID]
     if not ports:
-        sys.exit(
-            f"No NanoGaN CDC ports found (VID={VID:04X}:PID={PID:04X}). "
-            "Is the board connected and running the application (not already in DFU mode)?"
+        print(
+            f"Warning: no NanoGaN CDC ports found (VID={VID:04X}:PID={PID:04X}). "
+            "The device may already be in DFU mode; continuing."
         )
+        return
 
     sent = False
     for p in ports:

@@ -6,16 +6,20 @@
             "type": "shell",
             "command": "STM32_Programmer_CLI",
             "args": [
-                "-c", "port=SWD",
-                "-w", "${workspaceFolder}/build/Debug/nanogan-sw_tagged.elf",
+                "-c",
+                "port=SWD",
+                "-w",
+                "${workspaceFolder}/build/Debug/NanoGaN-SW_tagged.elf",
                 "-v",
                 "-rst"
             ],
             "problemMatcher": []
         },
         {
-            "label": "⚡ Build + Flash",
-            "dependsOn": ["CMake Build Debug", "Flash (ST-Link SWD)"],
+            "label": "⚡ Flash",
+            "dependsOn": [
+                "Flash (ST-Link SWD)"
+            ],
             "dependsOrder": "sequence",
             "group": "build",
             "problemMatcher": []
@@ -37,16 +41,22 @@
             "type": "shell",
             "command": "STM32_Programmer_CLI",
             "args": [
-                "-c", "port=usb1",
-                "-w", "${workspaceFolder}/build/Debug/nanogan-sw_tagged.elf",
+                "-c",
+                "port=usb1",
+                "-w",
+                "${workspaceFolder}/build/Debug/NanoGaN-SW_tagged.elf",
                 "-v",
-                "-s", "0x08000000"
+                "-s",
+                "0x08000000"
             ],
             "problemMatcher": []
         },
         {
-            "label": "⚡ Build + Flash (USB DFU)",
-            "dependsOn": ["CMake Build Debug", "Enter DFU Mode (USB)", "Flash (USB DFU)"],
+            "label": "⚡ Flash (USB DFU)",
+            "dependsOn": [
+                "Enter DFU Mode (USB)",
+                "Flash (USB DFU)"
+            ],
             "dependsOrder": "sequence",
             "group": "build",
             "problemMatcher": []

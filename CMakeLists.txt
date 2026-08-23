@@ -55,7 +55,7 @@ FetchContent_MakeAvailable(scrutiny-embedded)
 # -----------------------------------------------------------------------------
 # TinyUSB
 # -----------------------------------------------------------------------------
-set(TINYUSB_DIR ${CMAKE_SOURCE_DIR}/Middlewares/Third_Party/tinyusb)
+set(TINYUSB_DIR ${CMAKE_SOURCE_DIR}/Middlewares/Third_Party/TinyUSB)
 
 # Include TinyUSB's own CMake logic and attach sources/includes to the target
 include(${TINYUSB_DIR}/CMakeLists.txt)

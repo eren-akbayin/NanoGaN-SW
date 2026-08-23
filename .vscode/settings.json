@@ -1,8 +1,12 @@
 {
     "cmake.cmakePath": "cube-cmake",
     "cmake.statusbar.advanced": {
-        "launch": { "visibility": "hidden" },
-        "debug": { "visibility": "hidden" }
+        "launch": {
+            "visibility": "hidden"
+        },
+        "debug": {
+            "visibility": "hidden"
+        }
     },
     "cmake.configureArgs": [
         "-DCMAKE_COMMAND=cube-cmake"
@@ -18,13 +22,13 @@
     ],
     "VsCodeTaskButtons.tasks": [
         {
-            "label": "⚡ Build + Flash",
-            "task": "⚡ Build + Flash",
+            "label": "⚡ Flash",
+            "task": "⚡ Flash",
             "tooltip": "Build firmware and flash via ST-Link SWD"
         },
         {
-            "label": "⚡ Build + Flash (DFU)",
-            "task": "⚡ Build + Flash (USB DFU)",
+            "label": "⚡ Flash (DFU)",
+            "task": "⚡ Flash (USB DFU)",
             "tooltip": "Build firmware and flash via USB DFU"
         }
     ]
