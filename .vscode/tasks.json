@@ -19,6 +19,49 @@
             "dependsOrder": "sequence",
             "group": "build",
             "problemMatcher": []
+        },
+        {
+            "label": "Enter DFU Mode (USB)",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "${workspaceFolder}/Tools/enter_dfu.py"
+            ],
+            "windows": {
+                "command": "python"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Flash (USB DFU)",
+            "type": "shell",
+            "command": "STM32_Programmer_CLI",
+            "args": [
+                "-c", "port=usb1",
+                "-w", "${workspaceFolder}/build/Debug/nanogan-sw_tagged.elf",
+                "-v",
+                "-s", "0x08000000"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "⚡ Build + Flash (USB DFU)",
+            "dependsOn": ["CMake Build Debug", "Enter DFU Mode (USB)", "Flash (USB DFU)"],
+            "dependsOrder": "sequence",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Reboot (USB)",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "${workspaceFolder}/Tools/reboot.py"
+            ],
+            "windows": {
+                "command": "python"
+            },
+            "problemMatcher": []
         }
     ]
 }

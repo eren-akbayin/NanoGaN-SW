@@ -27,6 +27,7 @@
 #include "usart.h"
 #include "usb_otg.h"
 #include "gpio.h"
+#include "bootloader.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -72,6 +73,7 @@ void MX_FREERTOS_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+
 /* USER CODE END 0 */
 
 /**
@@ -82,6 +84,11 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+
+  /* Must run before anything else: if a "dfu" command requested a bootloader
+     entry, this jumps into the system memory DFU bootloader and never
+     returns. Otherwise (normal boot) it's a no-op. */
+  Bootloader_CheckAndJump();
 
   /* USER CODE END 1 */
 
@@ -132,6 +139,7 @@ int main(void)
   tusb_init();
   HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)&gInverterMeasurements.uAngleRaw, 1);
   HAL_GPIO_WritePin(SPI2_MOSI_GPIO_Port, SPI2_MOSI_Pin, GPIO_PIN_SET);
+
 
   /* USER CODE END 2 */
 

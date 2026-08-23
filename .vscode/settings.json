@@ -21,6 +21,11 @@
             "label": "⚡ Build + Flash",
             "task": "⚡ Build + Flash",
             "tooltip": "Build firmware and flash via ST-Link SWD"
+        },
+        {
+            "label": "⚡ Build + Flash (DFU)",
+            "task": "⚡ Build + Flash (USB DFU)",
+            "tooltip": "Build firmware and flash via USB DFU"
         }
     ]
 }

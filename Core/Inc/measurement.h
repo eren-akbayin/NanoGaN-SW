@@ -6,8 +6,8 @@
 //Measurement conversion constants
 
 #define VOLTS_PER_BIT 12.0f/790.0f
-#define AMPERES_PER_BIT 80.0f/4096.0f
-#define BITS_PER_AMPERE 4096.0f/80.0f
+#define AMPERES_PER_BIT 3.3f/4096.0f/33e-3f
+#define BITS_PER_AMPERE 4096.0f/3.3f*33e-3f
 #define BITS_PER_VOLT 790.0f/12.0f
 #define DEGREES_PER_BIT 360.0f/16384.0f
 

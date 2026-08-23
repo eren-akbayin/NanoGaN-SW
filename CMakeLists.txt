@@ -77,6 +77,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/Core/Src/measurement.c
     ${CMAKE_SOURCE_DIR}/Core/Src/mc_math.c
     ${CMAKE_SOURCE_DIR}/Core/Src/parameters.c
+    ${CMAKE_SOURCE_DIR}/Core/Src/bootloader.c
 
     ${CMAKE_SOURCE_DIR}/Application/Src/user_task.c
     ${CMAKE_SOURCE_DIR}/Application/Src/angle_offset_calibration.c

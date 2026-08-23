@@ -3,6 +3,7 @@
 #include "cmsis_os.h"
 #include "main.h"
 #include "tusb.h"
+#include "bootloader.h"
 #include "scrutiny_integration.h"
 #include "measurement.h"
 #include "parameters.h"
@@ -115,6 +116,14 @@ void userCDCTask(void *param)
                 static const char *state_names[] = { "INIT", "STANDBY", "ACTIVE", "RESET", "FAULT" };
                 cdc_reply(state_names[inverter_fsm_get_state()]);
                 cdc_reply("\r\n");
+            } else if (strncmp((char *)rx_buf, "dfu", 3) == 0) {
+                cdc_reply("-> DFU\r\n");
+                osDelay(50); /* let the reply drain out over USB before we reset */
+                Bootloader_RequestEntry();
+            } else if (strncmp((char *)rx_buf, "reboot", 6) == 0) {
+                cdc_reply("-> REBOOT\r\n");
+                osDelay(50); /* let the reply drain out over USB before we reset */
+                Bootloader_Reboot();
             } else {
                 cdc_reply("unknown command\r\n");
             }
