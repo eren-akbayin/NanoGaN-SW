@@ -48,7 +48,7 @@ set(SCRUTINY_DATALOGGING_BUFFER_32BITS ON)
 FetchContent_Declare(
   scrutiny-embedded
   GIT_REPOSITORY https://github.com/scrutinydebugger/scrutiny-embedded.git
-  GIT_TAG        v0.5.0
+  GIT_TAG        v0.7.2
 )
 FetchContent_MakeAvailable(scrutiny-embedded)
 
