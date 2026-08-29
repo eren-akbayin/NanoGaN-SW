@@ -115,7 +115,7 @@ void Parameters_Init(void)
     gParameters.fStatorInductanceD = 182.0f;
     gParameters.fStatorInductanceQ = 190.0f;
     gParameters.fFluxLinkage       = 0.0f;
-    gParameters.fMaxPhaseCurrent   = 5.0f;
+    gParameters.fMaxPhaseCurrent   = 3.0f;
     gParameters.fMinDcVoltage      = 11.0f;
     gParameters.fMaxDcVoltage      = 15.0f;
     gParameters.fMaxSpeed          = 0.0f;

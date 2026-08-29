@@ -3,6 +3,9 @@
 #include "main.h"
 #include "tim.h"
 
+// Measurement defines
+#define MEASUREMENT_SAMPLES 10
+
 //Measurement conversion constants
 
 #define VOLTS_PER_BIT 12.0f/790.0f
@@ -29,9 +32,9 @@ typedef struct {
     volatile uint16_t uCurrOffsetW;
 
     // Voltage & sensor measurements
-    uint32_t uDcLinkVoltage[10];
-    uint32_t uPhaseSens[3*10];
-    uint32_t uCurrSens[3*10];
+    uint32_t uDcLinkVoltage[MEASUREMENT_SAMPLES];
+    uint32_t uPhaseSens[3 * MEASUREMENT_SAMPLES];
+    uint32_t uCurrSens[3 * MEASUREMENT_SAMPLES];
 
     volatile uint16_t uAngleRaw; /* SPI2 RX-DMA target; struct must stay in .dma_data (RAM_D3) */
 

@@ -27,11 +27,11 @@
 #include "usart.h"
 #include "usb_otg.h"
 #include "gpio.h"
-#include "bootloader.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include "bootloader.h"
 #include "tusb.h"
 #include "measurement.h"
 #include "parameters.h"
